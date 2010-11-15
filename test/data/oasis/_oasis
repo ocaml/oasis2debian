@@ -1,0 +1,221 @@
+OASISFormat:  0.1
+OCamlVersion: >= 3.11.0
+Name:         oasis
+Version:      0.2.0
+LicenseFile:  COPYING.txt
+License:      LGPL-2.1 with OCaml linking exception
+BuildType:    ocamlbuild (0.2)
+Authors:      Sylvain Le Gall
+Copyrights:   (C) 2008-2010 OCamlCore SARL
+Homepage:     http://oasis.forge.ocamlcore.org/
+Plugins:      DevFiles (0.2), StdFiles (0.2), META (0.2)
+FilesAB:      src/oasis/OASISConf.ml.ab
+BuildTools:   ocamlbuild, make
+
+Synopsis: Architecture for building OCaml libraries and applications
+Description:
+  OASIS generates a full configure, build and install system for your
+  application. It starts with a simple `_oasis` file at the toplevel of your
+  project and creates everything required.
+  .
+  It uses external tools like OCamlbuild and it can be considered as the glue
+  between various subsystems that do the job. It should support the following
+  tools: 
+  .
+  - OCamlbuild
+  - OMake (todo)
+  - OCamlMakefile (todo),
+  - ocaml-autoconf (todo)
+  .
+  It also features a do-it-yourself command line invocation and an internal 
+  configure/install scheme. Libraries are managed through findlib. It has been
+  tested on GNU Linux and Windows.
+  .
+  It also allows to have standard entry points and description. It helps to 
+  integrates your libraries and software with third parties tools like GODI.
+
+Flag libraries
+  Description: Install oasis and base libraries, for plugins development
+
+Flag gettext
+  Description: Use ocaml-gettext for i18n
+  Default: false
+
+if flag(gettext) 
+  PostBuildCommand: $make -C po all
+  PostCleanCommand: $make -C po clean
+  PostInstallCommand:   $make -C po install PODIR=$prefix/share/locale
+  PostUninstallCommand: $make -C po install PODIR=$prefix/share/locale
+
+Executable ocamlmod
+  Path:   src/tools
+  MainIs: ocamlmod.ml
+  BuildDepends: fileutils, pcre
+  Install: false
+  
+Library oasis
+  Path: src/oasis
+  Modules: FormatExt,
+           ODNFunc,
+           PropList,
+           OASISUtils,
+           OASISUnixPath,
+           OASISContext,
+           OASISGettext,
+           OASISMessage,
+           OASISTypes,
+           OASISParse,
+           OASISValues,
+           OASISExpr,
+           OASISVersion,
+           OASISLicense,
+           OASISFileTemplate,
+           OASISBuildSection,
+           OASISDocument,
+           OASISExecutable,
+           OASISFlag,
+           OASISLibrary,
+           OASISPackage,
+           OASISSourceRepository,
+           OASISTest,
+           OASISPlugin,
+           OASISSchema
+  InternalModules: OASISVersion_types,
+                   OASISVersion_lexer,
+                   OASISVersion_parser,
+                   OASISSection,
+                   OASISSchema,
+                   OASISConf,
+                   OASISAst,
+                   OASISCheck,
+                   OASISRecDescParser,
+                   OASISCustom,
+                   OASISQuickstart,
+                   OASISData,
+                   OASISHelp,
+                   OASISFormat,
+                   OASISBuildSection_intern,
+                   OASISDocument_intern,
+                   OASISExecutable_intern,
+                   OASISFlag_intern,
+                   OASISLibrary_intern,
+                   OASISPackage_intern,
+                   OASISSourceRepository_intern,
+                   OASISTest_intern,
+                   OASISSchema_intern
+  CompiledObject: Best
+  BuildDepends: fileutils (>= 0.4.2), unix, pcre, extlib, 
+                findlib, odn (>= 0.0.3), ocamlgraph
+  BuildTools+: ocamlmod, ocamlyacc, ocamllex, ocamlify
+  XMETADescription: _oasis file functions
+  Install$: flag(libraries)
+
+Library base
+  Path: src/base
+  Modules: BaseArgExt,
+           BaseBuilt,
+           BaseCheck,
+           BaseCustom,
+           BaseData,
+           BaseDev,
+           BaseDoc,
+           BaseEnvLight,
+           BaseEnv,
+           BaseExec,
+           BaseFileAB,
+           BaseFilePath,
+           BaseFileUtil,
+           BaseGenerate,
+           BaseLog,
+           BaseOCamlcConfig,
+           BaseSetup,
+           BaseStandardVar,
+           BaseTest,
+           BaseDynVar,
+           BaseMessage,
+           BaseContext
+  CompiledObject: Best
+  BuildDepends: oasis
+  BuildTools+: ocamlmod, ocamlify
+  FindlibParent: oasis
+  XMETADescription: 'setup.ml' modules for OASIS
+  Install$: flag(libraries)
+
+Library "builtin-plugins"
+  Path: src
+  Modules: OASISBuiltinPlugins
+  InternalModules: plugins/none/NonePlugin,
+                   plugins/none/NoneData,
+                   plugins/internal/InternalConfigurePlugin, 
+                   plugins/internal/InternalInstallPlugin,
+                   plugins/internal/InternalData,
+                   plugins/internal/InternalId,
+                   plugins/ocamlbuild/OCamlbuildPlugin,
+                   plugins/ocamlbuild/OCamlbuildDocPlugin,
+                   plugins/ocamlbuild/OCamlbuildData,
+                   plugins/ocamlbuild/OCamlbuildCommon,
+                   plugins/ocamlbuild/OCamlbuildId,
+                   plugins/ocamlbuild/MyOCamlbuildBase,
+                   plugins/ocamlbuild/MyOCamlbuildFindlib,
+                   plugins/custom/CustomPlugin,
+                   plugins/custom/CustomData,
+                   plugins/extra/META/METAPlugin,
+                   plugins/extra/META/METAData,
+                   plugins/extra/devfiles/DevFilesPlugin,
+                   plugins/extra/devfiles/DevFilesData,
+                   plugins/extra/stdfiles/StdFilesPlugin,
+                   plugins/extra/stdfiles/StdFilesData
+  CompiledObject: Best
+  BuildDepends: oasis, oasis.base
+  FindlibParent: oasis
+
+Library cli
+  Path:             src/cli
+  Modules:          SubCommand
+  CompiledObject:   byte
+  BuildDepends:     oasis
+  FindlibParent:    oasis
+  XMETADescription: 'setup.ml' modules for OASIS
+  Install$:         flag(libraries)
+
+
+Executable oasis
+  Path:   src/cli
+  MainIs: Main.ml
+  BuildDepends: oasis, oasis.base, oasis.cli, oasis.builtin-plugins
+
+Executable test
+  Path: test
+  MainIs: test.ml
+  Install: false
+  CompiledObject: byte
+  BuildDepends: oUnit (>= 1.1.0), oasis, oasis.base, oasis.builtin-plugins, expect.pcre (>= 0.0.2)
+
+Test main
+  Type: custom (0.2)
+  Command: $test -oasis-exec $oasis -has-ocamlopt $is_native
+  WorkingDirectory: test 
+  TestTools: oasis, test
+
+Document manual
+  Type: custom (0.2)
+  Title: OASIS User Manual
+  if flag(gettext) 
+    XCustom: env LANG=C $oasis manual > doc/MANUAL.mkd
+  else
+    XCustom: $oasis manual -o doc/MANUAL.mkd
+  XCustomClean: $rm doc/MANUAL.mkd
+  DataFiles: doc/MANUAL.mkd
+
+Document "api-oasis"
+  Title:                API reference for OASIS 
+  Type:                 ocamlbuild (0.2)
+  InstallDir:           $htmldir/oasis
+  BuildTools+:          ocamldoc
+  XOCamlbuildPath:      src/
+  XOCamlbuildLibraries: oasis, oasis.base, oasis.cli
+
+SourceRepository head
+  Type: darcs
+  Location: http://darcs.ocamlcore.org/repos/oasis
+  Browser: http://darcs.ocamlcore.org/cgi-bin/darcsweb.cgi?r=oasis;a=summary

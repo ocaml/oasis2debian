@@ -1,0 +1,23 @@
+OASISFormat: 0.2
+Name:        oasis2debian
+Version:     0.1.0
+Synopsis:    Create and maintain Debian package for an OASIS package
+Authors:     Sylvain Le Gall
+License:     GPL-3.0
+Plugins:     DevFiles (0.2), META (0.2), StdFiles (0.2)
+Homepage:    http://oasis.forge.ocamlcore.org/oasis2debian
+BuildTools:  ocamlbuild
+
+Executable oasis2debian
+  Path:         src
+  MainIs:       Main.ml
+  BuildDepends: oasis (>= 0.2.0), xstrp4, fileutils (>= 0.4.2), pcre
+  
+Executable test
+  Path:         test
+  MainIs:       test.ml
+  BuildDepends: oUnit (>= 1.1.0), fileutils (>= 0.4.2), unix
+
+Test main
+  Command: $test -exec $oasis2debian
+  TestTools: oasis2debian, test

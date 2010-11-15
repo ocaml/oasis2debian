@@ -1,0 +1,5 @@
+(* OASIS_START *)
+(* DO NOT EDIT (digest: d0ac17e4c985edf8790980c3506dc65e) *)
+Authors of oasis2debian
+Sylvain Le Gall
+(* OASIS_STOP *)

@@ -1,0 +1,8 @@
+# OASIS_START
+# DO NOT EDIT (digest: b6a1ff92a6c3f18cea9f467e5438e786)
+# Executable oasis2debian
+# OASIS_STOP
+
+"src/Main.ml": syntax_camlp4o
+"src/Control.ml": syntax_camlp4o
+"src/Copyright.ml": syntax_camlp4o

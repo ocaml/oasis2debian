@@ -1,0 +1,19 @@
+Source: ocamlify
+Section: ocaml
+Priority: optional
+Maintainer: Debian OCaml Maintainers <debian-ocaml-maint@lists.debian.org>
+Uploaders: 
+  Sylvain Le Gall <gildor@debian.org>
+Build-Depends:
+  debhelper (>= 7.0.50~),
+  dh-ocaml (>= 0.9.0~)
+Standards-Version: 3.9.1
+Homepage: TODO
+Vcs-Git: git://git.debian.org/git/pkg-ocaml-maint/packages/ocamlify.git
+Vcs-Browser: http://git.debian.org/?p=pkg-ocaml-maint/packages/ocamlify.git
+
+Package: ocamlify
+Architecture: all
+Depends: ${misc:Depends}, ${ocaml:Depends}
+Description: include files in OCaml code
+ TODO

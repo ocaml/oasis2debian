@@ -1,0 +1,53 @@
+OASISFormat:  0.1
+OCamlVersion: >= 3.10.2
+Name:         ocaml-data-notation
+Version:      0.0.2
+Synopsis:     Store data using OCaml notation
+Authors:      Sylvain Le Gall
+License:      LGPL-2.1 with OCaml linking exception
+LicenseFile:  COPYING.txt
+Plugins:      StdFiles (0.1.0), DevFiles (0.1.0), META (0.1.0)
+FilesAB:      tests/TestConf.ml.ab
+BuildTools:   ocamlbuild
+
+Library odn
+  Path:    src
+  Modules: ODN
+  
+Library pa_odn
+  Path:               src
+  Modules:            Pa_odn
+  FindlibParent:      odn
+  FindlibContainers:  with
+  FindlibName:        syntax
+  BuildDepends:       type-conv (>= 1.5.0), camlp4.lib, camlp4.quotations.o 
+  CompiledObject:     byte
+  XMETAType:          syntax
+  XMETARequires:      type-conv.syntax, camlp4, odn
+  XMETADescription:   Syntax extension for odn
+
+Library pa_noodn
+  Path:               src
+  Modules:            Pa_noodn
+  FindlibParent:      odn
+  FindlibContainers:  without
+  FindlibName:        syntax
+  BuildDepends:       type-conv, camlp4.lib, camlp4.quotations.o 
+  CompiledObject:     byte
+  XMETAType:          syntax
+  XMETARequires:      type-conv.syntax, camlp4
+  XMETADescription:   Syntax extension that removes 'with odn'
+
+Flag tests
+  Description: Build and run tests
+
+Executable test
+  Path:         tests
+  MainIs:       test.ml
+  Install:      false
+  Build$:       flag(tests)
+  BuildDepends: oUnit, fileutils (>= 0.4.0), odn, str
+  
+Test main
+  Run$:    flag(tests)
+  Command: $test
