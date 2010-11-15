@@ -172,45 +172,8 @@ let () =
            "dch --create --package $pkg.OASISTypes.name --newversion $pkg_version-1")
   in
 
-  (* Create debian/rules *)
   let () = 
-    debian_with_fn "rules"
-      (output_content "\
-#!/usr/bin/make -f
-# -*- makefile -*-
-
-# Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
-
-DESTDIR=$(CURDIR)/debian/ocamlify
-
-include /usr/share/ocaml/ocamlvars.mk
-
-%:
-	dh --with ocaml $@
-
-.PHONY: override_dh_auto_configure
-override_dh_auto_configure:
-	ocaml setup.ml -configure --prefix /usr --destdir '$(DESTDIR)' --enable-debug
-
-.PHONY: override_dh_auto_build
-override_dh_auto_build:
-	ocaml setup.ml -build
-
-.PHONY: override_dh_auto_install
-override_dh_auto_install:
-	mkdir -p '$(DESTDIR)/usr/bin'
-	ocaml setup.ml -install 
-
-.PHONY: override_dh_auto_clean
-override_dh_auto_clean:
-	ocaml setup.ml -distclean")
-  in
-  let () = 
-    Unix.chmod (debian_fn "rules") 0o655 
-  in
-
-  let () = 
+    Rules.create t;
     Control.create t;
     Copyright.create t;
   in 
