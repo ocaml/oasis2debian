@@ -1,5 +1,0 @@
-ocamlify (0.0.1-1) UNRELEASED; urgency=low
-
-  * Initial release. (Closes: #XXXXXX)
-
- -- Sylvain Le Gall <gildor@debian.org>  Mon, 15 Nov 2010 16:48:58 +0100
