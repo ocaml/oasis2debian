@@ -2,3 +2,4 @@ Main.byte
 _build
 setup.log
 setup.data
+src/Version.ml

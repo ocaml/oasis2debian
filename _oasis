@@ -7,6 +7,7 @@ License:     GPL-3.0
 Plugins:     DevFiles (0.2), META (0.2), StdFiles (0.2)
 Homepage:    http://oasis.forge.ocamlcore.org/oasis2debian
 BuildTools:  ocamlbuild
+FilesAB:     src/Version.ml.ab
 
 Executable oasis2debian
   Path:         src

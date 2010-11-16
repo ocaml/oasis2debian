@@ -64,7 +64,9 @@ let () =
            (Printf.sprintf
               "Don't know what to do with '%s'"
               s))
-      "oasis2debian by Sylvain Le Gall"
+      (Printf.sprintf 
+         "oasis2debian v%s by Sylvain Le Gall"
+         Version.ver)
   in
 
   let t = 
@@ -220,15 +222,3 @@ let () =
   in 
 
     ()
-
-(*
- 
-oasis2debian -itp ?
- 
-create copyright file
--> Copyrights mandatory
--> ajouter le texte de l'exception OCaml
-
-create control file
-
- *)
