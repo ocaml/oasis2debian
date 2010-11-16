@@ -5,6 +5,32 @@ open Common
 
 let dh_compat = "7"
 
+let description = 
+  Conf.create 
+    ~cli:"--description"
+    "Long description of the package"
+    Conf.LongInput
+
+let homepage =
+  Conf.create 
+    ~cli:"--homepage"
+    "Homepage of the package"
+    Conf.ShortInput
+
+let uploader =
+  Conf.create 
+    ~cli:"--uploader"
+    "Uploader of the package"
+    (Conf.Fun
+       (fun () ->
+          try 
+            Printf.sprintf 
+              "%s <%s>"
+              (Sys.getenv "DEBFULLNAME")
+              (Sys.getenv "DEBEMAIL")
+          with _ ->
+            failwith "Unable to guess uploader"))
+
 let () = 
   let ctxt = 
     {(!OASISContext.default) with 
@@ -17,21 +43,36 @@ let () =
       "_oasis"
   in
 
-  let dflt x d =
-    match x with 
-      | Some e -> e
-      | None -> d
+  let dflt r x =
+    match x, Conf.is_set r with 
+      | Some e, false -> 
+          Conf.set r e
+      | _ ->
+          ()
+  in
+
+  let () = 
+    dflt description pkg.OASISTypes.description;
+    dflt homepage    pkg.OASISTypes.homepage
+  in
+
+  let () = 
+    Arg.parse
+      (Arg.align !Conf.all_args)
+      (fun s -> 
+         failwith 
+           (Printf.sprintf
+              "Don't know what to do with '%s'"
+              s))
+      "oasis2debian by Sylvain Le Gall"
   in
 
   let t = 
     {
       build_depends = [];
-      description   = dflt pkg.OASISTypes.description "TODO";
-      homepage      = dflt pkg.OASISTypes.homepage "TODO";
-      uploader      = Printf.sprintf 
-                        "%s <%s>"
-                        (Sys.getenv "DEBFULLNAME")
-                        (Sys.getenv "DEBEMAIL");
+      description   = Conf.get description;
+      homepage      = Conf.get homepage;
+      uploader      = Conf.get uploader;
       pkg           = pkg;
       deb_std       = None;
       deb_dev       = None;

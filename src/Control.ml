@@ -1,6 +1,7 @@
 
 open OASISTypes
 open Common
+open ExtString
 
 let create t = 
   let sep = 
@@ -16,6 +17,18 @@ let create t =
 
   let src_name = 
     t.pkg.OASISTypes.name
+  in
+
+  let description = 
+    let lst = 
+      List.map 
+        (fun str ->
+           match String.strip str with
+             | "" -> "."
+             | str -> str)
+        (String.nsplit t.description "\n")
+    in
+      String.concat "\n " lst
   in
 
     debian_with_fn "control"
@@ -65,7 +78,7 @@ Vcs-Browser: http://git.debian.org/?p=pkg-ocaml-maint/packages/${src_name}.git")
                      (interpolate "\
 Depends: \${misc:Depends}, \${ocaml:Depends}
 Description: $t.pkg.synopsis
- $t.description");
+ $description");
                    if t.deb_dev <> None then
                      output_content 
 " .
@@ -85,7 +98,7 @@ Depends: \${ocaml:Depends}, \${misc:Depends}
 Provides: \${ocaml:Provides}
 Recommends: ocaml-findlib
 Description: $t.pkg.synopsis
-  $t.description");
+  $description");
 
                    output_intro deb_runtime;
                    output_content
@@ -93,7 +106,7 @@ Description: $t.pkg.synopsis
 Depends: \${ocaml:Depends}, \${misc:Depends}, \${shlibs:Depends}
 Provides: \${ocaml:Provides}
 Description: $t.pkg.synopsis
- $t.description
+ $description
  .
  This package contains the shared runtime libraries.")
 
@@ -110,7 +123,7 @@ Description: $t.pkg.synopsis
 Section: doc
 Depends: \${misc:Depends}
 Description: $t.pkg.synopsis
- $t.description
+ $description
  .
  This package contains the documentation.")
 
