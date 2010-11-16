@@ -19,23 +19,23 @@ let create t =
   in
     debian_with_fn "rules"
       (output_content 
-         interpolate ("\
+         (interpolate "\
 #!/usr/bin/make -f
 # -*- makefile -*-
 
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-DESTDIR=$(CURDIR)/debian/$destdir
+DESTDIR=\$(CURDIR)/debian/$destdir
 
 include /usr/share/ocaml/ocamlvars.mk
 
 %:
-	dh --with ocaml $@
+	dh --with ocaml \$@
 
 .PHONY: override_dh_auto_configure
 override_dh_auto_configure:
-	ocaml setup.ml -configure --prefix /usr --destdir '$(DESTDIR)' --enable-debug
+	ocaml setup.ml -configure --prefix /usr --destdir '\$(DESTDIR)' --enable-debug
 
 .PHONY: override_dh_auto_build
 override_dh_auto_build:
@@ -43,7 +43,7 @@ override_dh_auto_build:
 
 .PHONY: override_dh_auto_install
 override_dh_auto_install:
-	mkdir -p '$(DESTDIR)/usr/bin'
+	mkdir -p '\$(DESTDIR)/usr/bin'
 	ocaml setup.ml -install 
 
 .PHONY: override_dh_auto_clean

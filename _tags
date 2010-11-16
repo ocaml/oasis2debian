@@ -6,3 +6,4 @@
 "src/Main.ml": syntax_camlp4o
 "src/Control.ml": syntax_camlp4o
 "src/Copyright.ml": syntax_camlp4o
+"src/Rules.ml": syntax_camlp4o
