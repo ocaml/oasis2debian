@@ -23,19 +23,19 @@ let is_set r =
     | Value _ -> true
     | _ -> false
 
-let rec get r = 
+let rec get ~ctxt r = 
   match r.value with 
     | Fun f ->
         set r (f ()); 
-        get r
+        get ~ctxt r
 
     | LongInput ->
-        set r (r.parse (Input.long "" r.help));
-        get r
+        set r (r.parse (Input.long ~ctxt "" r.help));
+        get ~ctxt r
 
     | ShortInput -> 
-        set r (r.parse (Input.short (r.help^": ")));
-        get r
+        set r (r.parse (Input.short ~ctxt (r.help^": ")));
+        get ~ctxt r
 
     | Value x ->
         x

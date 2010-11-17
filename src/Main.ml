@@ -32,6 +32,12 @@ let uploader =
             failwith "Unable to guess uploader"))
 
 let () = 
+  let () = 
+    (* Clean ENV *)
+    Unix.putenv "OCAMLPATH" "";
+    Unix.putenv "LC_ALL" "C"
+  in
+
   let ctxt = 
     {(!OASISContext.default) with 
          OASISContext.ignore_plugins = true}
@@ -71,10 +77,10 @@ let () =
 
   let t = 
     {
-      build_depends = [];
-      description   = Conf.get description;
-      homepage      = Conf.get homepage;
-      uploader      = Conf.get uploader;
+      build_depends = BuildDepends.get ~ctxt pkg [];
+      description   = Conf.get ~ctxt description;
+      homepage      = Conf.get ~ctxt homepage;
+      uploader      = Conf.get ~ctxt uploader;
       pkg           = pkg;
       deb_std       = None;
       deb_dev       = None;
@@ -210,7 +216,7 @@ let () =
     in
 
     if debian_not_exist "changelog" then
-      assert_command 
+      assert_command ~ctxt  
         (interpolate 
            "dch --create --package $pkg.OASISTypes.name --newversion $pkg_version-1")
   in

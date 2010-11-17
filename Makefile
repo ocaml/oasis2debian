@@ -1,4 +1,7 @@
+OCAMLRUNPARAM=b
+export OCAMLRUNPARAM
 
+TESTFLAGS=-verbose
 default: test
 
 

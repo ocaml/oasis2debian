@@ -4,7 +4,7 @@ open Common
 open FileUtil
 
 (** Edit a text in an editor *)
-let long text help = 
+let long ~ctxt text help = 
   let fn, chn = 
     Filename.open_temp_file "oasis2debian-" ".txt"
   in
@@ -68,7 +68,7 @@ let long text help =
           close_out chn;
 
           (* Run the editor (debian specific) *)
-          assert_command (Printf.sprintf "sensible-editor %s" fn);
+          assert_command ~ctxt (Printf.sprintf "sensible-editor %s" fn);
 
           (* Get back the text *)
           read_content ()
@@ -81,6 +81,6 @@ let long text help =
       rm [fn];
       raise e
 
-let short q =
+let short ~ctxt q =
   print_string q; flush stdout;
   read_line ()

@@ -1,5 +1,7 @@
 
 open FileUtil
+open OASISUtils
+open OASISMessage
 
 type deb_pkg =
     {
@@ -54,10 +56,40 @@ let debian_with_fn fn f =
 
 (** Run a command and file if exit code is non-zero
   *)
-let assert_command cmd = 
+let assert_command ~ctxt cmd = 
+  info ~ctxt "Running command '%s'" cmd;
   match Sys.command cmd with 
     | 0 -> ()
-    | n -> failwith (Printf.sprintf "Command '%s' exited with code %d" cmd n)
+    | n -> 
+        failwithf2
+          "Command '%s' exited with code %d" 
+          cmd n
+
+
+let assert_command_output ~ctxt cmd = 
+  let chn = 
+    info ~ctxt "Running command '%s'" cmd;
+    Unix.open_process_in cmd
+  in
+  let rec read_chn () = 
+    try 
+      let ln = 
+        input_line chn 
+      in
+        ln :: read_chn ()
+    with End_of_file ->
+      []
+  in
+  let res =
+    read_chn ()
+  in
+    match Unix.close_process_in chn with 
+      | Unix.WEXITED 0 ->
+          res
+      | _ ->
+          failwithf1
+            "Command '%s' exited with non-zero exit code"
+            cmd
 
 let output_content str chn = 
   output_string chn (str^"\n")
