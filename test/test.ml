@@ -33,7 +33,7 @@ let tests =
                 with Not_found ->
                   []
               in
-                Sys.command (String.concat " " (!oasis2debian :: args)))
+                assert_command !oasis2debian args)
            (fun () ->
               rm ~recurse:true ["debian"];
               Sys.chdir pwd))
