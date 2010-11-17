@@ -31,6 +31,14 @@ let uploader =
           with _ ->
             failwith "Unable to guess uploader"))
 
+let library_name = 
+  Conf.create 
+    ~cli:"--library-name"
+    "Short name of the library (XXX in libXXX-ocaml-dev)"
+    (Conf.Fun
+       (fun () ->
+          failwith "Not set"))
+
 let () = 
   let () = 
     (* Clean ENV *)
@@ -132,14 +140,29 @@ let () =
   in
 
   let base_name = 
-    (* Try to guess the target name *)
-    List.fold_left
-      (fun name pat -> 
-         Pcre.replace ~pat ~templ:"" name)
+    if Conf.is_set library_name then
+      begin
+        Conf.get ~ctxt library_name 
+      end
+    else
+      begin
+        match OASISLibrary.group_libs pkg with 
+          | [hd] ->
+              (* First method: if there is a single findlib library use its name
+               *)
+              OASISLibrary.findlib_of_group hd
 
-      (* Start with the package name *)
-      t.pkg.OASISTypes.name
-      ["^ocaml-?"; "-?ocaml$"]
+          | _ ->
+              (* Default method: try to guess the target name using source name 
+               *)
+              List.fold_left
+                (fun name pat -> 
+                   Pcre.replace ~pat ~templ:"" name)
+
+                (* Start with the package name *)
+                t.pkg.OASISTypes.name
+                ["^ocaml-?"; "-?ocaml$"]
+      end
   in
 
   let spf fmt = 
