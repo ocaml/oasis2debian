@@ -80,9 +80,9 @@ Depends: \${misc:Depends}, \${ocaml:Depends}
 Description: $t.pkg.synopsis
  $description");
                    if t.deb_dev <> None then
-                     output_content 
-" .
-  This package contains command-line tools."
+                     output_content " \
+ .
+ This package contains command-line tools."
 
                | None -> 
                    ()
@@ -98,7 +98,7 @@ Depends: \${ocaml:Depends}, \${misc:Depends}
 Provides: \${ocaml:Provides}
 Recommends: ocaml-findlib
 Description: $t.pkg.synopsis
-  $description");
+ $description");
 
                    output_intro deb_runtime;
                    output_content

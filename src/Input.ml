@@ -25,6 +25,32 @@ let long text help =
         (fun s -> not (String.starts_with s "#"))
         (String.nsplit str "\n")
     in
+
+    let rec chop_blank_eol str = 
+      if String.ends_with str " " || 
+         String.ends_with str "\t" ||
+         String.ends_with str "\r" then
+        chop_blank_eol (String.rchop str) 
+      else
+        str
+    in
+
+    let lst = 
+      List.rev_map chop_blank_eol lst
+    in
+      
+    let rec chop_blank_last_lines = 
+      function
+        | "" :: tl -> 
+            chop_blank_last_lines tl
+        | lst ->
+            List.rev lst
+    in
+
+    let lst =
+      chop_blank_last_lines lst
+    in
+
       String.concat "\n" lst
   in
 
