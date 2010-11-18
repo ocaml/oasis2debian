@@ -15,16 +15,26 @@ type t =
     description:   string;
     homepage:      string;
     uploader:      string;
+
+    (** Pristine OASIS package *)
     pkg:           OASISTypes.package;
+
+    (** OASIS package with section filtered.
+        A section is removed if it is not installed
+        or built on all arches
+      *)
+    pkg_generic:   OASISTypes.package; 
+
+    (** Evaluation environment for OASISExpr *)
     expr:          Expr.t;
 
-    (* Standard Debian package *)
+    (** Standard Debian package *)
     deb_std:       deb_pkg option;
 
-    (* Library + runtime package *)
+    (** Library + runtime package *)
     deb_dev:       (deb_pkg * deb_pkg) option;
 
-    (* Doc package *)
+    (** Doc package *)
     deb_doc:       deb_pkg option;
   }
 

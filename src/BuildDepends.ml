@@ -26,6 +26,15 @@ module SetDepends =
          String.compare nm1 nm2
      end)
 
+let cmp_opt_merge v1_opt v2_opt = 
+  match v1_opt, v2_opt with
+    | Some v1, Some v2 -> 
+        Some 
+          (OASISVersion.comparator_reduce 
+             (OASISVersion.VAnd (v1, v2)))
+    | None, opt | opt, None ->
+        opt
+
 let add_depends ?(arch_spec=`All) nm ver_opt st =
   let ver_opt, arch_spec =
     try 
@@ -35,13 +44,7 @@ let add_depends ?(arch_spec=`All) nm ver_opt st =
           (SetDepends.elements st)
       in
       let ver_opt = 
-        match ver_opt', ver_opt with
-          | Some v1, Some v2 -> 
-              Some 
-                (OASISVersion.comparator_reduce 
-                   (OASISVersion.VAnd (v1, v2)))
-          | None, opt | opt, None ->
-              opt
+        cmp_opt_merge ver_opt' ver_opt 
       in
         ver_opt, Arch.Spec.merge arch_spec arch_spec'
 
@@ -318,13 +321,23 @@ let get ~ctxt pkg =
   in
 
   let debian_depends = 
-    List.fold_right 
-      SetDepends.add 
-      [
-        "ocaml-findlib", pkg.findlib_version, `All;
-        "ocaml-nox", pkg.ocaml_version, `All;
-      ]
-      SetDepends.empty
+    let cos = 
+      OASISVersion.comparator_of_string 
+    in
+      List.fold_right 
+        SetDepends.add 
+        [
+          "debhelper",     Some (cos ">= 7.0.50~"), `All;
+          "dh-ocaml",      Some (cos ">= 0.9~"),    `All;
+          "ocaml-findlib", pkg.findlib_version,     `All;
+
+          "ocaml-nox",
+          cmp_opt_merge
+            pkg.ocaml_version
+            (Some (cos ">= 3.11.1-3~")),
+          `All;
+        ]
+        SetDepends.empty
   in
 
   let debian_depends = 

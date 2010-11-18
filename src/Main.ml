@@ -31,6 +31,12 @@ let uploader =
           with _ ->
             failwith "Unable to guess uploader"))
 
+let itp =
+  Conf.create
+    ~cli:"--itp"
+    "Bug number of the ITP for the package"
+    Conf.ShortInput
+
 let () = 
   let () = 
     (* Clean ENV *)
@@ -51,6 +57,10 @@ let () =
                  
   let expr = 
     Expr.create ~ctxt pkg
+  in
+
+  let pkg_generic =
+    PkgGeneric.create ~ctxt expr pkg
   in
 
   let dflt r x =
@@ -86,6 +96,7 @@ let () =
       homepage      = Conf.get ~ctxt homepage;
       uploader      = Conf.get ~ctxt uploader;
       pkg           = pkg;
+      pkg_generic   = pkg_generic;
       expr          = expr;
       deb_std       = None;
       deb_dev       = None;
@@ -117,15 +128,21 @@ let () =
     in
 
     if debian_not_exist "changelog" then
-      assert_command ~ctxt  
-        (interpolate 
-           "dch --create --package $pkg.OASISTypes.name --newversion $pkg_version-1")
+      begin
+        let itp = 
+          Conf.get ~ctxt itp 
+        in
+          assert_command ~ctxt  
+            (interpolate 
+               "dch --create --package $pkg.OASISTypes.name --newversion $pkg_version-1 --closes $itp")
+      end
   in
 
   let () = 
-    Rules.create t;
     Control.create t;
     Copyright.create ~ctxt t;
+    Rules.create t;
+    DhFiles.create ~ctxt t
   in 
 
     ()

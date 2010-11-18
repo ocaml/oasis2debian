@@ -12,7 +12,7 @@ let create t =
     match t.build_depends with 
       | [] -> ""
       | lst ->
-          sep^(String.concat sep t.build_depends)
+          String.concat sep t.build_depends
   in
 
   let src_name = 
@@ -69,8 +69,7 @@ Maintainer: Debian OCaml Maintainers <debian-ocaml-maint@lists.debian.org>
 Uploaders: 
   $t.uploader
 Build-Depends:
-  debhelper (>= 7.0.50~),
-  dh-ocaml (>= 0.9.0~)$build_depends
+  $build_depends
 Standards-Version: 3.9.1
 Homepage: $t.homepage
 Vcs-Git: git://git.debian.org/git/pkg-ocaml-maint/packages/${src_name}.git

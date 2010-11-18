@@ -14,39 +14,24 @@ let library_name =
           failwith "Not set"))
 
 let set ~ctxt t = 
-  let eval = 
-    Expr.choose 
-      ~ctxt 
-      t.expr 
-      (`All (fun x y -> x || y))
-  in
 
   let lib, doc, bin =
     List.fold_left
       (fun ((lib, doc, bin) as acc) ->
          function
            | Library (cs, bs, lib') ->
-               if eval bs.bs_build && eval bs.bs_install then
-                 ((cs, bs, lib') :: lib), doc, bin
-               else
-                 acc
+               ((cs, bs, lib') :: lib), doc, bin
 
            | Executable (cs, bs, exec) ->
-               if eval bs.bs_build && eval bs.bs_install then
-                 lib, doc, ((cs, bs, exec) :: bin)
-               else
-                 acc
+               lib, doc, ((cs, bs, exec) :: bin)
 
            | Doc (cs, doc') ->
-               if eval doc'.doc_build && eval doc'.doc_install then
-                 lib, ((cs, doc') :: doc), bin
-               else
-                 acc
+               lib, ((cs, doc') :: doc), bin
 
            | Flag _ | Test _ | SrcRepo _ ->
                acc)
       ([], [], [])
-      t.pkg.sections
+      t.pkg_generic.sections
   in
 
   let arch lst = 
@@ -79,7 +64,7 @@ let set ~ctxt t =
       end
     else
       begin
-        match OASISLibrary.group_libs t.pkg with 
+        match OASISLibrary.group_libs t.pkg_generic with 
           | [hd] ->
               (* First method: if there is a single findlib library use its name
                *)
@@ -93,7 +78,7 @@ let set ~ctxt t =
                    Pcre.replace ~pat ~templ:"" name)
 
                 (* Start with the package name *)
-                t.pkg.OASISTypes.name
+                t.pkg_generic.OASISTypes.name
                 ["^ocaml-?"; "-?ocaml$"]
       end
   in
@@ -120,7 +105,7 @@ let set ~ctxt t =
           begin
             (* Only a binary package, name = source name *)
             let base_name = 
-              t.pkg.OASISTypes.name
+              t.pkg_generic.OASISTypes.name
             in
               add_doc 
                 (base_name^"-doc")
