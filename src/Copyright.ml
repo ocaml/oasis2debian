@@ -1,9 +1,20 @@
 
 open OASISTypes
 open OASISLicense
+open OASISMessage
 open Common
 
-let license_exception exc = 
+let copyrights = 
+  Conf.create 
+    ~cli:"--copyrights"
+    "Copyright holds of the package"
+    Conf.ShortInput
+
+let todo ~ctxt msg = 
+  OASISMessage.warning ~ctxt "%s" msg;
+  "TODO"
+
+let license_exception ~ctxt exc = 
   if exc = ocaml_linking_exception then
    " \
  As a special exception to the GNU Library General Public License, you may
@@ -20,15 +31,14 @@ let license_exception exc =
  Public License."
 
  else
-   "\
- TODO"
+    " "^(todo ~ctxt 
+           (Printf.sprintf 
+              "License exception '%s' not defined"
+              (string_of_license_exception exc)))
 
-let license_full l = 
+let license_full ~ctxt l = 
   let see_common = 
     Printf.sprintf "See '/usr/share/common-licenses/%s'."
-  in
-  let todo = 
-    "TODO"
   in
   let min_ver =
     function
@@ -36,6 +46,12 @@ let license_full l =
           Some (OASISVersion.string_of_version x)
       | NoVersion -> 
           None
+  in
+  let todo () = 
+    todo ~ctxt 
+      (Printf.sprintf 
+         "License '%s' not defined"
+         (OASISLicense.to_string l))
   in
     match l with 
       | DEP5License l ->
@@ -47,7 +63,7 @@ let license_full l =
                 begin
                   match min_ver l.version with 
                     | Some "2.0" -> see_common "Apache-2.0"
-                    | _ -> todo
+                    | _ -> todo ()
                 end
 
               else if license = artistic then
@@ -67,7 +83,7 @@ let license_full l =
                     | Some "2" -> see_common "GPL-2"
                     | Some "3" -> see_common "GPL-3"
                     | None -> see_common "GPL"
-                    | Some _ -> todo
+                    | Some _ -> todo ()
                 end
 
               else if license = gfdl then
@@ -76,7 +92,7 @@ let license_full l =
                     | Some "1.2" -> see_common "GFDL-1.2"
                     | Some "1.3" -> see_common "GFDL-1.3"
                     | None -> see_common "GFDL"
-                    | Some _ -> todo
+                    | Some _ -> todo ()
                 end
 
               else if license = lgpl then
@@ -86,24 +102,31 @@ let license_full l =
                     | Some "2.1" -> see_common "LGPL-2.1"
                     | Some "3" -> see_common "LGPL-3"
                     | None -> see_common "LGPL"
-                    | Some _ -> todo
+                    | Some _ -> todo ()
                 end
 
               else 
-                todo
+                todo ()
           end
 
       | OtherLicense _ ->
-          todo
+          todo ()
 
 
-let create t = 
+let create ~ctxt t = 
   let copyrights = 
-    let sep = "           \n" 
-    in
-    match t.pkg.copyrights with 
-      | [] -> "TODO"
-      | lst -> String.concat sep lst
+    if Conf.is_set copyrights then 
+      Conf.get ~ctxt copyrights 
+    else
+      begin
+        let sep = "           \n" 
+        in
+        match t.pkg.copyrights with 
+          | [] -> 
+              todo ~ctxt "No copyrights defined"
+          | lst -> 
+              String.concat sep lst
+      end
   in
 
   let license = 
@@ -111,7 +134,7 @@ let create t =
   in
 
   let license_full = 
-    license_full t.pkg.OASISTypes.license
+    license_full ~ctxt t.pkg.OASISTypes.license
   in
 
   let license_exception =
@@ -120,7 +143,7 @@ let create t =
           let sep  = 
             "\n\n"
           in
-            sep ^ (String.concat sep (List.map license_exception lst))
+            sep ^ (String.concat sep (List.map (license_exception ~ctxt) lst))
 
       | _ ->
           ""

@@ -125,7 +125,7 @@ let () =
   let () = 
     Rules.create t;
     Control.create t;
-    Copyright.create t;
+    Copyright.create ~ctxt t;
   in 
 
     ()
