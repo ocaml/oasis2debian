@@ -16,6 +16,7 @@ type t =
     homepage:      string;
     uploader:      string;
     pkg:           OASISTypes.package;
+    expr:          Expr.t;
 
     (* Standard Debian package *)
     deb_std:       deb_pkg option;
@@ -94,3 +95,5 @@ let assert_command_output ~ctxt cmd =
 let output_content str chn = 
   output_string chn (str^"\n")
 
+
+module MapString = Map.Make(String)

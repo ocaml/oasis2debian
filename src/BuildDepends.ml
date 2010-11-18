@@ -7,10 +7,6 @@ open ExtString
 open FileUtil
 open FilePath
 
-type arch = 
-  | ArchAll
-  | ArchOnly of string * string list
-
 module SetExec = 
   Set.Make
     (String)
@@ -22,112 +18,42 @@ module SetFindlib =
        let compare = Pervasives.compare
      end)
 
-let all_confs = 
-  let linux_i386 = 
-    []
-  in
-
-  let linux_amd64 = 
-    []
-  in
-
-    [
-      "i386", linux_i386;
-      "amd64", linux_amd64;
-(*
-      "alpha", linux_alpha;
-      "armel", linux_armel;
-      "hppa", linux_hppa;
-      "hurd-i386", hurd_i386;
-      "ia64", linux_ia64;
-      "kfreebsd-amd64", kfreebsd_amd64;
-      "kfreebsd-i386", kfreebsd_i386;
-      "mips", linux_mips;
-      "mipsel", linux_mipsel;
-      "powerpc", linux_powerpc;
-      "s390", linux_s390;
-      "sparc", linux_sparc;
- *)
-    ]
-
 module SetDepends =
   Set.Make
     (struct
-       type t = string * OASISVersion.comparator option * arch 
+       type t = string * OASISVersion.comparator option * Arch.Spec.t
        let compare (nm1, _, _) (nm2, _, _) = 
          String.compare nm1 nm2
      end)
 
-let add_depends ?arch nm ver_opt st =
-  let ver_opt', arch' =
+let add_depends ?(arch_spec=`All) nm ver_opt st =
+  let ver_opt, arch_spec =
     try 
-      let _, ver_opt', arch' = 
+      let _, ver_opt', arch_spec' = 
         List.find
           (fun (nm', _, _) -> nm' = nm)
           (SetDepends.elements st)
       in
-        ver_opt', Some arch'
+      let ver_opt = 
+        match ver_opt', ver_opt with
+          | Some v1, Some v2 -> 
+              Some 
+                (OASISVersion.comparator_reduce 
+                   (OASISVersion.VAnd (v1, v2)))
+          | None, opt | opt, None ->
+              opt
+      in
+        ver_opt, Arch.Spec.merge arch_spec arch_spec'
 
     with Not_found ->
-      None, None
+      ver_opt, arch_spec
   in
 
-  let ver_opt = 
-    match ver_opt, ver_opt' with
-      | Some v1, Some v2 ->
-          Some 
-            (OASISVersion.comparator_reduce 
-               (OASISVersion.VAnd (v1, v2)))
-      | None, opt
-      | opt, _ ->
-          opt
-  in
+    SetDepends.add (nm, ver_opt, arch_spec) st
 
-  let arch =
-    match arch, arch' with
-      | Some a, None -> 
-          ArchOnly (a, [])
-
-      | Some _, Some ArchAll ->
-          ArchAll
-
-      | Some a, Some (ArchOnly (hd, tl)) ->
-          if not (List.mem a (hd :: tl)) then
-            ArchOnly (hd, a :: tl)
-          else
-            ArchOnly (hd, tl)
-
-      | None, _ ->
-          ArchAll
-  in
-
-    SetDepends.add (nm, ver_opt, arch) st
-
-let string_of_depends (nm, ver_opt, arch) = 
+let string_of_depends (nm, ver_opt, arch_spec) = 
   let arch_str = 
-    match arch with 
-      | ArchAll -> ""
-      | ArchOnly (hd, tl) ->
-          begin
-            (* All arches of the package *)
-            let lst = hd :: tl in 
-            let neg =
-              List.map ((^) "!") 
-                (List.filter 
-                   (* Remove arches of the package *)
-                   (fun nm -> not (List.mem nm lst)) 
-                   (* All arches *)
-                   (List.map fst all_confs))
-            in
-
-            let lst =
-              if List.length neg < List.length lst then
-                neg
-              else
-                lst
-            in            
-              Printf.sprintf " [%s]" (String.concat ", " lst)
-          end
+    Arch.Spec.to_string_build_depends arch_spec
   in
   let ver_str =
     match ver_opt with 
@@ -142,66 +68,50 @@ let string_of_depends (nm, ver_opt, arch) =
 (* Compute build dependencies, against real debian packages
  *)
 let get ~ctxt pkg = 
-
-  let depends_of_conf conf acc = 
-    let eval conf = 
-      OASISExpr.choose
-        (fun nm -> 
-           try 
-             List.assoc nm conf
-           with Not_found as e ->
-             error ~ctxt "OASIS variable '%s' not defined" nm;
-             raise e)
+  let eval = 
+    let t = 
+      Expr.create ~ctxt pkg
     in
+      Expr.choose ~ctxt t 
+  in
 
-    let conf = 
-      (* Evaluate flag values and add then to conf *)
-      List.fold_left 
-        (fun conf ->
-           function 
-             | Flag (cs, flag) ->
-                 (cs.cs_name, 
-                  string_of_bool (eval conf flag.flag_default))
-                 :: conf
-             | Library _ | Executable _ | Doc _ | Test _ | SrcRepo _ ->
-                 conf)
-        conf
-        pkg.sections
-    in
-
+  let depends_of_arch arch acc = 
     let depends_of_bs bs ((exec, fndlb) as acc) =
-      if eval conf bs.bs_build && eval conf bs.bs_install then
-        begin
-          let exec = 
-            List.fold_left 
-              (fun exec ->
-                 function
-                   | ExternalTool nm -> 
-                       SetExec.add nm exec
-                   | InternalExecutable _ ->
-                       exec)
-              exec
-              bs.bs_build_tools
-          in
+      let eval  =
+        eval (`Only arch)
+      in
+        if eval bs.bs_build && eval bs.bs_install then
+          begin
+            let exec = 
+              List.fold_left 
+                (fun exec ->
+                   function
+                     | ExternalTool nm -> 
+                         SetExec.add nm exec
+                     | InternalExecutable _ ->
+                         exec)
+                exec
+                bs.bs_build_tools
+            in
 
-          let fndlb =
-            List.fold_left
-              (fun fndlb ->
-                 function
-                   | FindlibPackage (nm, ver_opt) ->
-                       SetFindlib.add (nm, ver_opt) fndlb
-                   | InternalLibrary _ ->
-                       fndlb)
-              fndlb
-              bs.bs_build_depends
-          in
+            let fndlb =
+              List.fold_left
+                (fun fndlb ->
+                   function
+                     | FindlibPackage (nm, ver_opt) ->
+                         SetFindlib.add (nm, ver_opt) fndlb
+                     | InternalLibrary _ ->
+                         fndlb)
+                fndlb
+                bs.bs_build_depends
+            in
 
-            exec, fndlb
-        end
-      else
-        begin
-          acc
-        end
+              exec, fndlb
+          end
+        else
+          begin
+            acc
+          end
     in
 
       List.fold_left 
@@ -226,7 +136,7 @@ let get ~ctxt pkg =
             "Cannot determine ocaml standard library directory"
   in
 
-  let debian_depends_of_depends ?arch exec fndlb st = 
+  let debian_depends_of_depends ?arch_spec exec fndlb st = 
     (* Find file *)
     let find_file ?(dev_pkg=false) fn = 
       let filter lst = 
@@ -368,26 +278,29 @@ let get ~ctxt pkg =
     let st = 
       SetExec.fold
         (fun nm st ->
-           add_depends ?arch (find_exec nm) None st)
+           add_depends ?arch_spec (find_exec nm) None st)
         exec
         st
     in
 
       SetFindlib.fold
         (fun (nm, ver_opt) st ->
-           add_depends ?arch (find_findlib nm) ver_opt st)
+           add_depends ?arch_spec (find_findlib nm) ver_opt st)
         fndlb
         st
   in
 
   let lst = 
-    List.map
-      (fun (nm, conf) ->
-         nm, 
-         depends_of_conf 
-           conf 
-           (SetExec.empty, SetFindlib.empty))
-      all_confs
+    List.rev_map
+      (fun arch ->
+         let arch_spec = 
+           `Only (arch, [])
+         in
+           arch_spec, 
+           depends_of_arch
+             arch
+             (SetExec.empty, SetFindlib.empty))
+      (Arch.all ())
   in
 
   (* Compute common dependencies *)
@@ -408,8 +321,8 @@ let get ~ctxt pkg =
     List.fold_right 
       SetDepends.add 
       [
-        "ocaml-findlib", pkg.findlib_version, ArchAll;
-        "ocaml-nox", pkg.ocaml_version, ArchAll;
+        "ocaml-findlib", pkg.findlib_version, `All;
+        "ocaml-nox", pkg.ocaml_version, `All;
       ]
       SetDepends.empty
   in
@@ -425,11 +338,11 @@ let get ~ctxt pkg =
   (* Check for extra dependencies for particular architecture *)
   let debian_depends = 
     List.fold_left 
-      (fun st (arch, (exec, fndlb)) ->
+      (fun st (arch_spec, (exec, fndlb)) ->
          let exec'  = SetExec.diff exec common_exec in
          let fndlb' = SetFindlib.diff fndlb common_fndlb in
            debian_depends_of_depends
-             ~arch
+             ~arch_spec
              exec'
              fndlb'
              st)
