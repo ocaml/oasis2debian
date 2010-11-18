@@ -28,7 +28,13 @@ let create t =
              | str -> str)
         (String.nsplit t.description "\n")
     in
+    let res = 
       String.concat "\n " lst
+    in
+      if res = "" then
+        "."
+      else
+        res
   in
 
     debian_with_fn "control"
