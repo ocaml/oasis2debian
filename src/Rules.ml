@@ -40,6 +40,8 @@ include /usr/share/ocaml/ocamlvars.mk
 
 OCAMLFIND_DESTDIR=\$(DESTDIR)/\$(OCAML_STDLIB_DIR)
 export OCAMLFIND_DESTDIR
+OCAMLFIND_LDCONF=ignore
+export OCAMLFIND_LDCONF
 
 %:
 	dh --with ocaml \$@

@@ -58,7 +58,9 @@ let create ~ctxt t =
            
          (* Has_dll *)
          let has_dll = 
-           List.exists (fun fn -> String.ends_with fn ".so") generated_files
+           List.exists 
+             (fun fn -> String.ends_with fn ".so") 
+             generated_files
          in
 
            findlib_name, has_dll)
@@ -219,8 +221,15 @@ OPT: @OCamlStdlibDir@/$findlib_name/*.cmxa")
               dh_with_fn deb_runtime "install.in"
                 (fun chn ->
                    (* At least one findlib root has a dll *)
-                   if List.exists snd roots then
-                     output_content "@OCamlDllDir@/*.so" chn;
+                   List.iter 
+                     (function 
+                        | (findlib_name, true) ->
+                            output_content 
+                              ("@OCamlStdlibDir@/"^findlib_name^"/*.so @OCamlDllDir@")
+                              chn
+                        | (_, false) ->
+                            ())
+                     roots;
 
                    List.iter 
                      (fun (findlib_name, has_dll) ->
