@@ -79,42 +79,60 @@ let get ~ctxt pkg =
   in
 
   let depends_of_arch arch acc = 
+    let eval  =
+      eval (`Only arch)
+    in
+
+    let add_tools tools exec = 
+      List.fold_left 
+        (fun exec ->
+           function
+             | ExternalTool nm -> 
+                 SetExec.add nm exec
+             | InternalExecutable _ ->
+                 exec)
+        exec tools
+    in
+
     let depends_of_bs bs ((exec, fndlb) as acc) =
-      let eval  =
-        eval (`Only arch)
-      in
-        if eval bs.bs_build && eval bs.bs_install then
-          begin
-            let exec = 
-              List.fold_left 
-                (fun exec ->
-                   function
-                     | ExternalTool nm -> 
-                         SetExec.add nm exec
-                     | InternalExecutable _ ->
-                         exec)
-                exec
-                bs.bs_build_tools
-            in
+      if eval bs.bs_build then
+        begin
+          let exec = 
+            add_tools bs.bs_build_tools exec
+          in
 
-            let fndlb =
-              List.fold_left
-                (fun fndlb ->
-                   function
-                     | FindlibPackage (nm, ver_opt) ->
-                         SetFindlib.add (nm, ver_opt) fndlb
-                     | InternalLibrary _ ->
-                         fndlb)
-                fndlb
-                bs.bs_build_depends
-            in
+          let fndlb =
+            List.fold_left
+              (fun fndlb ->
+                 function
+                   | FindlibPackage (nm, ver_opt) ->
+                       SetFindlib.add (nm, ver_opt) fndlb
+                   | InternalLibrary _ ->
+                       fndlb)
+              fndlb
+              bs.bs_build_depends
+          in
 
-              exec, fndlb
-          end
-        else
-          begin
-            acc
-          end
+            exec, fndlb
+        end
+      else
+        begin
+          acc
+        end
+    in
+
+    let depends_of_doc doc ((exec, fndlb) as acc) = 
+      if eval doc.doc_build then
+        add_tools doc.doc_build_tools exec, fndlb
+      else
+        acc
+    in
+
+    let depends_of_test test ((exec, fndlb) as acc) = 
+      if eval test.test_run then
+        add_tools test.test_tools exec, fndlb
+      else
+        acc
     in
 
       List.fold_left 
@@ -123,8 +141,14 @@ let get ~ctxt pkg =
              | Library (_, bs, _) 
              | Executable (_, bs, _) ->
                  depends_of_bs bs acc
+
+             | Test (_, test) ->
+                 depends_of_test test acc
+
+             | Doc (_, doc) ->
+                 depends_of_doc doc acc
              
-             | Flag _ | Test _ | SrcRepo _ | Doc _ ->
+             | Flag _ | SrcRepo _ ->
                  acc)
         acc
         pkg.sections

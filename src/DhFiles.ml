@@ -112,7 +112,7 @@ let create ~ctxt t =
                                 "@OCamlStdlibDir@/$findlib_name/*.a")
                            else
                              (interpolate 
-                                "#OPT: @OCamlStdlibDir@/$findlib_name/*.a"))
+                                "OPT: @OCamlStdlibDir@/$findlib_name/*.a"))
                           chn)
                      roots);
               
