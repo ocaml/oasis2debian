@@ -40,14 +40,7 @@ let rec get ~ctxt r =
     | Value x ->
         x
 
-let create ?cli ?parse help t = 
-  let parse =
-    match parse with 
-      | Some f -> 
-          f 
-      | None -> 
-          fun s -> s
-  in
+let create_full ?cli parse help t = 
   let res = 
     {
       value = t;
@@ -66,3 +59,6 @@ let create ?cli ?parse help t =
         | None -> ()
     end;
     res
+
+let create ?cli help t = 
+  create_full ?cli (fun s -> s) help t

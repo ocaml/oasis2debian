@@ -37,6 +37,13 @@ let itp =
     "Bug number of the ITP for the package"
     Conf.ShortInput
 
+let bts_query =
+  Conf.create_full 
+    ~cli:"--bts-query"
+    bool_of_string
+    "Query the BTS for ITP (true/false)"
+    (Conf.Value true)
+
 let () = 
   let () = 
     (* Clean ENV *)
@@ -132,9 +139,18 @@ let () =
         let itp = 
           Conf.get ~ctxt itp 
         in
+        let opts =
+          ""
+        in
+        let opts =
+          if Conf.get ~ctxt bts_query then
+            opts
+          else
+            opts^" --no-query"
+        in
           assert_command ~ctxt  
             (interpolate 
-               "dch --create --package $pkg.OASISTypes.name --newversion $pkg_version-1 --closes $itp")
+               "dch --create --package $pkg.OASISTypes.name --newversion $pkg_version-1 --closes $itp $opts")
       end
   in
 
