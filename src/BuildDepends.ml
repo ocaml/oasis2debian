@@ -2,6 +2,7 @@
 open OASISTypes
 open OASISUtils
 open OASISMessage
+open OASISVersion
 open Common
 open ExtString
 open FileUtil
@@ -30,8 +31,8 @@ let cmp_opt_merge v1_opt v2_opt =
   match v1_opt, v2_opt with
     | Some v1, Some v2 -> 
         Some 
-          (OASISVersion.comparator_reduce 
-             (OASISVersion.VAnd (v1, v2)))
+          (OASISVersionExt.comparator_reduce 
+             (VAnd (v1, v2)))
     | None, opt | opt, None ->
         opt
 
@@ -54,15 +55,29 @@ let add_depends ?(arch_spec=`All) nm ver_opt st =
 
     SetDepends.add (nm, ver_opt, arch_spec) st
 
-let string_of_depends (nm, ver_opt, arch_spec) = 
+let string_of_depends ~ctxt (nm, ver_opt, arch_spec) = 
   let arch_str = 
     Arch.Spec.to_string_build_depends arch_spec
   in
   let ver_str =
     match ver_opt with 
       | Some v ->
-          Printf.sprintf " (%s)"
-            (OASISVersion.string_of_comparator v)
+          begin
+            begin
+              match v with 
+                | VGreater _ | VGreaterEqual _ 
+                | VLesser _ | VLesserEqual _  
+                | VEqual _ ->
+                    ()
+                | VOr _ | VAnd _ ->
+                    error ~ctxt 
+                      "Version constraint '%s' on build depends '%s' is too complex"
+                      (string_of_comparator v)
+                      nm
+            end;
+            Printf.sprintf " (%s)"
+              (string_of_comparator v)
+          end
       | None ->
           ""
   in
@@ -346,7 +361,7 @@ let get ~ctxt pkg =
 
   let debian_depends = 
     let cos = 
-      OASISVersion.comparator_of_string 
+      comparator_of_string 
     in
       List.fold_right 
         SetDepends.add 
@@ -390,6 +405,6 @@ let get ~ctxt pkg =
     (* Translate depends into string *)
     SetDepends.fold
       (fun dep lst ->
-         string_of_depends dep :: lst)
+         string_of_depends ~ctxt dep :: lst)
       debian_depends
 
