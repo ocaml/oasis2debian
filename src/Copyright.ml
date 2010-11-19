@@ -119,7 +119,7 @@ let create ~ctxt t =
       Conf.get ~ctxt copyrights 
     else
       begin
-        let sep = "           \n" 
+        let sep = "\n           "
         in
         match t.pkg.copyrights with 
           | [] -> 
