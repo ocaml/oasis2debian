@@ -89,7 +89,92 @@ let create ~ctxt t =
           (output_content "# Nothing")
       end
   in
-    
+
+  let mk_doc_base docdir cs doc chn = 
+    let print s = output_content s chn in
+    let installdir = 
+      (* TODO: something better *)
+      (* Close your eyes *)
+      Unix.putenv "prefix" "/usr";
+      Unix.putenv "docdir" docdir;
+      BaseStandardVar.init t.pkg_generic;
+      BaseEnv.var_expand doc.doc_install_dir
+      (* You can open your eyes again *)
+    in
+      print
+        (interpolate "\
+Document: $t.pkg_generic.OASISTypes.name-$cs.cs_name
+Title: $doc.doc_title
+Section: Programming/OCaml");
+      begin
+        match doc.doc_abstract with 
+          | Some str ->
+              print ("Abstract: "^str) 
+          | None ->
+              ()
+      end;
+
+      begin 
+        match doc.doc_authors with 
+          | [] ->
+              ()
+          | lst ->
+              print 
+                ("Author: "^(String.concat ", " lst)) 
+      end;
+
+      print "";
+
+      begin 
+        match doc.doc_format with 
+          | HTML index ->
+              print "Format: HTML";
+              print ("Index: "^installdir^"/"^index)
+            
+          | DocText ->
+              print "Format: Text"
+
+          | PDF ->
+              print "Format: PDF"
+          | PostScript ->
+              print "Format: PostScript"
+
+          | Info index ->
+              print "Format: Info";
+              print ("Index: "^installdir^"/"^index)
+
+          | DVI ->
+              print "Format: DVI"
+
+          | OtherDoc ->
+              (* Default to HTML with a fake index *)
+              print "Format: HTML";
+              print ("Index: "^installdir^"/index.html")
+      end;
+
+      print ("Files: "^installdir^"/*")
+  in
+
+  let mk_doc_bases deb_pkg docdir =
+    let _i : int =
+      List.fold_left
+        (fun n ->
+           function
+             | Doc (cs, doc) ->
+                 dh_with_fn deb_pkg 
+                   ("doc-base."^(string_of_int n))
+                   (mk_doc_base docdir cs doc);
+                 n + 1
+
+             | Library _ | Executable _ | Flag _ 
+             | Test _ | SrcRepo _ ->
+                 n)
+        1
+        t.pkg_generic.sections
+    in
+      ()
+  in
+
     begin 
       match t.deb_dev with 
         | Some (deb_dev, deb_runtime) ->
@@ -114,7 +199,21 @@ OPT: @OCamlStdlibDir@/$findlib_name/*.cmxa")
                            else
                              (interpolate 
                                 "OPT: @OCamlStdlibDir@/$findlib_name/*.a"))
-                          chn)
+                          chn;
+
+                        begin
+                          match t.deb_doc, docdir t with 
+                            | None, Some fn ->
+                                output_content 
+                                  (FilePath.make_relative "/" fn)
+                                  chn;
+
+                                mk_doc_bases deb_dev fn
+                            | _, _ ->
+                                ()
+                        end;
+
+                     )
                      roots);
               
               dh_with_fn deb_runtime "install.in"
@@ -141,10 +240,22 @@ OPT: @OCamlStdlibDir@/$findlib_name/*.cmxa")
     begin
       match t.deb_doc with 
         | Some deb_pkg ->
-            mk_ocamldoc deb_pkg;
+            begin
+              mk_ocamldoc deb_pkg;
 
-            (* TODO *)
-            ()
+              match docdir t with 
+                | Some docdir -> 
+                    begin
+                      dh_with_fn deb_pkg "install"
+                        (output_content 
+                           (FilePath.make_relative "/" docdir));
+
+                      mk_doc_bases deb_pkg docdir 
+                    end
+
+                | None ->
+                    ()
+            end
 
         | None ->
             begin

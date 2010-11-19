@@ -17,6 +17,14 @@ let create t =
            *)
           "tmp"
   in
+
+  let docdir = 
+    match docdir t with 
+      | Some fn ->
+          " --docdir '"^fn^"'"
+      | None ->
+          ""
+  in
     debian_with_fn "rules"
       (output_content 
          (interpolate "\
@@ -38,7 +46,7 @@ export OCAMLFIND_DESTDIR
 
 .PHONY: override_dh_auto_configure
 override_dh_auto_configure:
-	ocaml setup.ml -configure --prefix /usr --destdir '\$(DESTDIR)' 
+	ocaml setup.ml -configure --prefix /usr --destdir '\$(DESTDIR)'$docdir
 
 .PHONY: override_dh_auto_build
 override_dh_auto_build:

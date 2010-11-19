@@ -2,6 +2,7 @@
 open FileUtil
 open OASISUtils
 open OASISMessage
+open OASISTypes
 
 type deb_pkg =
     {
@@ -107,3 +108,18 @@ let output_content str chn =
 
 
 module MapString = Map.Make(String)
+
+let docdir t = 
+  let has_doc = 
+    List.exists 
+      (function Doc _ -> true | _ -> false) 
+      t.pkg.sections
+  in
+    match has_doc, t.deb_doc, t.deb_dev with 
+      | true, Some deb_pkg, _ 
+      | true, None, Some (deb_pkg, _) ->
+          Some ("/usr/share/doc/"^deb_pkg.name)
+
+      | false, _, _
+      | true, None, None ->
+          None
