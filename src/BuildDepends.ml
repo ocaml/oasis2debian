@@ -185,8 +185,15 @@ let get ~ctxt pkg =
         if dev_pkg then
           begin
             let lst' = 
-              List.filter
-                (fun nm -> String.ends_with nm "-dev")
+              List.fold_left
+                (fun acc nm -> 
+                   if Pcre.pmatch ~pat:"^lib.*-ocaml$" nm then
+                     (nm^"-dev") :: acc
+                   else if String.ends_with nm "-dev" then
+                     nm :: acc
+                   else 
+                     acc)
+                []
                 lst
             in
               (* Some package don't adhere to the -dev convention (e.g. camlp4),
