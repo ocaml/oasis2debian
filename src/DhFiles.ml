@@ -102,8 +102,9 @@ let create ~ctxt t =
                         output_content 
                           (interpolate 
                              "\
-@OCamlStdlibDir@/$findlib_name/*.cm*
-@OCamlStdlibDir@/$findlib_name/*.ml*")
+@OCamlStdlibDir@/$findlib_name/*.cm[ix]
+@OCamlStdlibDir@/$findlib_name/*.ml*
+OPT: @OCamlStdlibDir@/$findlib_name/*.cmxa")
                           chn;
 
                         output_content
@@ -128,7 +129,7 @@ let create ~ctxt t =
                           (interpolate 
                              "\
 @OCamlStdlibDir@/$findlib_name/META
-@OCamlStdlibDir@/$findlib_name/*.cma")
+@OCamlStdlibDir@/$findlib_name/*.cm[ao]")
                           chn)
                      roots)
             end
