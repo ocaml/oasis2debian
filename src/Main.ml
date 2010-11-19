@@ -122,6 +122,16 @@ let () =
       (fun chn -> output_string chn (dh_compat^"\n"))
   in
 
+  (* Create debian/gbp.conf *)
+  let () = 
+    debian_with_fn "gbp.conf"
+      (fun chn ->
+         output_string chn
+           "[DEFAULT]\n\
+            pristine-tar = True\n\
+            cleaner = debuild clean && dh_quilt_unpatch && dh_clean\n")
+  in
+
   (* Create debian/source *)
   let () = 
     debian_with_fn "source/format"
