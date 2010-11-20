@@ -35,7 +35,7 @@ let uploader =
 let deb_name =
   Conf.create 
     ~cli:"--debian-name"
-    "Source package name in Debian (e.g. extunix become ocaml-extunix)"
+    "Source package name in Debian (e.g. extunix becomes ocaml-extunix)"
     Conf.ShortInput
 
 let itp =
@@ -91,7 +91,7 @@ let () =
   in
 
   let () = 
-    let cur_dn = FilePath.dirname (pwd ()) in
+    let cur_dn = FilePath.basename (pwd ()) in
     let pkg_nm = pkg.OASISTypes.name in
       if pkg_nm = cur_dn then
         Conf.set deb_name cur_dn
