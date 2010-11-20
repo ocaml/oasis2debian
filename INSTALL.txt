@@ -34,3 +34,15 @@ configuration file. The generated setup only depends on standard OCaml
 installation, no additional library is required.
 
 (* OASIS_STOP *)
+
+xstrp4 patching
+===============
+
+As of version 1.7, xstrp4 need to be patched to compile this project. Consider
+applying the patch you can find in the top directory of this project:
+xstrp4-record-v2.patch 
+
+This patch gives the ability to camlp4 to use variable like "$rcrd.field".
+
+It has been submitted upstream, and it will hopefully be integrated into xstrp4
+v1.8.
