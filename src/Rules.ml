@@ -5,12 +5,12 @@ open Common
 let create t = 
   let destdir = 
     match t.deb_std, t.deb_dev, t.deb_doc with
-      | Some _, None, None 
-      | _, _, Some _ ->
+      | Some deb_pkg, None, None 
+      | _, _, Some deb_pkg ->
           (* Only one package, move data directly into 
            * it
            *)
-          t.pkg.OASISTypes.name
+          deb_pkg.name
       | _, _, _ ->
           (* More than 1 package, we need to install files
            * in different packages 

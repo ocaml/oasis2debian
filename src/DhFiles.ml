@@ -105,7 +105,7 @@ let create ~ctxt t =
     in
       print
         (interpolate "\
-Document: $t.pkg_generic.OASISTypes.name-$cs.cs_name
+Document: $t.deb_name-$cs.cs_name
 Title: $doc.doc_title
 Section: Programming/OCaml");
       begin

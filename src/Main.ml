@@ -1,5 +1,6 @@
 
 open OASISTypes
+open OASISMessage
 open FileUtil
 open Common
 
@@ -30,6 +31,12 @@ let uploader =
               (Sys.getenv "DEBEMAIL")
           with _ ->
             failwith "Unable to guess uploader"))
+
+let deb_name =
+  Conf.create 
+    ~cli:"--debian-name"
+    "Source package name in Debian (e.g. extunix become ocaml-extunix)"
+    Conf.ShortInput
 
 let itp =
   Conf.create
@@ -84,6 +91,18 @@ let () =
   in
 
   let () = 
+    let cur_dn = FilePath.dirname (pwd ()) in
+    let pkg_nm = pkg.OASISTypes.name in
+      if pkg_nm = cur_dn then
+        Conf.set deb_name cur_dn
+      else
+        warning ~ctxt 
+          "OASIS name (%s) and directory name (%s) are not the same, \
+           cannot set Debian name"
+          pkg_nm cur_dn
+  in
+
+  let () = 
     Arg.parse
       (Arg.align !Conf.all_args)
       (fun s -> 
@@ -102,6 +121,7 @@ let () =
       description   = Conf.get ~ctxt description;
       homepage      = Conf.get ~ctxt homepage;
       uploader      = Conf.get ~ctxt uploader;
+      deb_name      = Conf.get ~ctxt deb_name;
       pkg           = pkg;
       pkg_generic   = pkg_generic;
       expr          = expr;
@@ -160,7 +180,7 @@ let () =
         in
           assert_command ~ctxt  
             (interpolate 
-               "dch --create --package $pkg.OASISTypes.name --newversion $pkg_version-1 --closes $itp $opts")
+               "dch --create --package $t.deb_name --newversion $pkg_version-1 --closes $itp $opts")
       end
   in
 

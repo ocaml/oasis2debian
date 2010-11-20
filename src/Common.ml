@@ -16,6 +16,7 @@ type t =
     description:   string;
     homepage:      string;
     uploader:      string;
+    deb_name:      string;
 
     (** Pristine OASIS package *)
     pkg:           OASISTypes.package;

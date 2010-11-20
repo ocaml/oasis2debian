@@ -161,7 +161,7 @@ let create ~ctxt t =
            output_content 
              (interpolate "\
 Format-Specification: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=135
-Name: $t.pkg.OASISTypes.name
+Name: $t.deb_name
 Maintainer: $t.uploader
 
 Files: *

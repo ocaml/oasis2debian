@@ -105,7 +105,7 @@ let set ~ctxt t =
           begin
             (* Only a binary package, name = source name *)
             let base_name = 
-              t.pkg_generic.OASISTypes.name
+              t.deb_name
             in
               add_doc 
                 (base_name^"-doc")

@@ -16,7 +16,7 @@ let create t =
   in
 
   let src_name = 
-    t.pkg.OASISTypes.name
+    t.deb_name
   in
 
   let description = 
