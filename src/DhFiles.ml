@@ -197,6 +197,15 @@ Section: Programming/OCaml");
       ()
   in
 
+    begin
+      match t.deb_std with 
+        | Some deb_pkg ->
+            dh_with_fn deb_pkg "install"
+              (output_content "usr/bin")
+        | None ->
+            ()
+    end;
+
     begin 
       match t.deb_dev with 
         | Some (deb_dev, deb_runtime) ->
