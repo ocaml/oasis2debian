@@ -24,7 +24,7 @@ open Common
 (* Create debian/rules *)
 let create t = 
   let destdir = 
-    match t.deb_std, t.deb_dev, t.deb_doc with
+    match t.deb_exec, t.deb_dev, t.deb_doc with
       | Some deb_pkg, None, None 
       | _, _, Some deb_pkg ->
           (* Only one package, move data directly into 

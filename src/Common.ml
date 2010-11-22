@@ -50,8 +50,8 @@ type t =
     (** Evaluation environment for OASISExpr *)
     expr:          Expr.t;
 
-    (** Standard Debian package *)
-    deb_std:       deb_pkg option;
+    (** Executables Debian package *)
+    deb_exec:      deb_pkg option;
 
     (** Library + runtime package *)
     deb_dev:       (deb_pkg * deb_pkg) option;

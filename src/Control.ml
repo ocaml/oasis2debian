@@ -96,7 +96,7 @@ Vcs-Git: git://git.debian.org/git/pkg-ocaml-maint/packages/${src_name}.git
 Vcs-Browser: http://git.debian.org/?p=pkg-ocaml-maint/packages/${src_name}.git");
 
            begin
-             match t.deb_std with 
+             match t.deb_exec with 
                | Some deb_pkg ->
                    output_intro deb_pkg;
                    output_content 

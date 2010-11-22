@@ -198,7 +198,7 @@ Section: Programming/OCaml");
   in
 
     begin
-      match t.deb_std with 
+      match t.deb_exec with 
         | Some deb_pkg ->
             dh_with_fn deb_pkg "install"
               (output_content "usr/bin")

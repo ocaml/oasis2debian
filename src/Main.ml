@@ -145,7 +145,7 @@ let () =
       pkg           = pkg;
       pkg_generic   = pkg_generic;
       expr          = expr;
-      deb_std       = None;
+      deb_exec      = None;
       deb_dev       = None;
       deb_doc       = None;
     }

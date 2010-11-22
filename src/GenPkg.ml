@@ -33,6 +33,14 @@ let library_name =
        (fun () ->
           failwith "Not set"))
 
+let executable_name = 
+  Conf.create 
+    ~cli:"--executable-name"
+    "Full name of the package that contains executables"
+    (Conf.Fun
+       (fun () ->
+          failwith "Not set"))
+
 let set ~ctxt t = 
 
   let lib, doc, bin =
@@ -124,12 +132,15 @@ let set ~ctxt t =
       | [], bin ->
           begin
             (* Only a binary package, name = source name *)
-            let base_name = 
-              t.deb_name
+            let exec_name = 
+              if Conf.is_set executable_name then 
+                Conf.get ~ctxt executable_name 
+              else
+                t.deb_name
             in
               add_doc 
                 (base_name^"-doc")
-                {t with deb_std = Some (mk_deb base_name bin)} 
+                {t with deb_exec = Some (mk_deb exec_name bin)} 
           end
 
       | lib, bin ->
@@ -145,9 +156,13 @@ let set ~ctxt t =
             (* Also executables ? *)
             let t =
               if bin <> [] then
-                {t with 
-                     deb_std = 
-                       Some (mk_deb (spf "lib%s-ocaml-bin" base_name) bin)}
+                let exec_name = 
+                  if Conf.is_set executable_name then
+                    Conf.get ~ctxt executable_name
+                  else
+                    spf "lib%s-ocaml-bin" base_name
+                in
+                  {t with deb_exec = Some (mk_deb exec_name bin)}
               else
                 t
             in
