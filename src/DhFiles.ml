@@ -27,6 +27,16 @@ open OASISLibrary
 open ExtString
 open Common
 
+type t = 
+  {
+    findlib_name: string;
+    has_byte:     bool;
+    has_native:   bool;
+    has_dll:      bool;
+    has_hinterf:  bool;
+    has_cmi:      bool;
+  }
+
 let create ~ctxt t = 
   let dh_with_fn deb_pkg ext = 
     debian_with_fn (deb_pkg.name^"."^ext)
@@ -75,15 +85,33 @@ let create ~ctxt t =
                   []
                   libs))
          in
-           
-         (* Has_dll *)
-         let has_dll = 
-           List.exists 
-             (fun fn -> String.ends_with fn ".so") 
+
+         let () = 
+           prerr_endline "----";
+           List.iter 
+             prerr_endline 
              generated_files
          in
+           
+         let has_extensions exts = 
+           List.fold_left
+             (fun acc ext ->
+                List.exists 
+                  (fun fn -> String.ends_with fn ext) 
+                  generated_files
+                || acc)
+             false
+             exts
+         in
 
-           findlib_name, has_dll)
+           {
+             findlib_name = findlib_name;
+             has_dll      = has_extensions [".so"];
+             has_native   = has_extensions [".cmxa"; ".cmx"];
+             has_byte     = has_extensions [".cma"; ".cmo"];
+             has_cmi      = has_extensions [".cmi"];
+             has_hinterf  = has_extensions [".ml"; ".mli"];
+           })
 
       findlib_roots
   in
@@ -105,7 +133,12 @@ let create ~ctxt t =
   in
 
   let mk_ocamldoc deb_pkg =
-    if not has_apidoc then
+    if not has_apidoc && 
+       (* API doc is not already generated *)
+
+       List.exists (fun e -> e.has_hinterf) roots then
+       (* There are .mli/.ml to create API doc *)
+
       begin
         dh_with_fn deb_pkg "ocamldoc"
           (output_content "# Nothing")
@@ -213,24 +246,36 @@ Section: Programming/OCaml");
               dh_with_fn deb_dev "install.in"
                 (fun chn -> 
                    List.iter 
-                     (fun (findlib_name, has_dll) ->
+                     (fun e ->
                         
-                        output_content 
-                          (interpolate 
-                             "\
-@OCamlStdlibDir@/$findlib_name/*.cm[ix]
-@OCamlStdlibDir@/$findlib_name/*.ml*
-OPT: @OCamlStdlibDir@/$findlib_name/*.cmxa")
+                        if e.has_cmi then
+                          output_content 
+                            (interpolate 
+                               "@OCamlStdlibDir@/$e.findlib_name/*.cmi")
+                            chn;
+
+                        if e.has_hinterf then
+                          output_content 
+                            (interpolate 
+                               "@OCamlStdlibDir@/$e.findlib_name/*.ml*")
                           chn;
 
-                        output_content
-                          (if has_dll then
-                             (interpolate 
-                                "@OCamlStdlibDir@/$findlib_name/*.a")
-                           else
-                             (interpolate 
-                                "OPT: @OCamlStdlibDir@/$findlib_name/*.a"))
-                          chn;
+                        if e.has_native then
+                          output_content
+                            (interpolate
+                               "OPT: @OCamlStdlibDir@/$e.findlib_name/*.cmx*")
+                            chn;
+
+                        if e.has_dll then
+                          output_content
+                            (interpolate 
+                               "@OCamlStdlibDir@/$e.findlib_name/*.a")
+                            chn
+                        else if e.has_native then
+                          output_content 
+                            (interpolate 
+                               "OPT: @OCamlStdlibDir@/$e.findlib_name/*.a")
+                            chn;
 
                         begin
                           match t.deb_doc, docdir t with 
@@ -252,22 +297,25 @@ OPT: @OCamlStdlibDir@/$findlib_name/*.cmxa")
                    (* At least one findlib root has a dll *)
                    List.iter 
                      (function 
-                        | (findlib_name, true) ->
+                        | {has_dll = true} as e ->
                             output_content 
-                              ("@OCamlStdlibDir@/"^findlib_name^"/*.so @OCamlDllDir@")
+                              ("@OCamlStdlibDir@/"^e.findlib_name^"/*.so @OCamlDllDir@")
                               chn
-                        | (_, false) ->
+                        | _ ->
                             ())
                      roots;
 
                    List.iter 
-                     (fun (findlib_name, has_dll) ->
+                     (fun e ->
                         output_content 
                           (interpolate 
-                             "\
-@OCamlStdlibDir@/$findlib_name/META
-@OCamlStdlibDir@/$findlib_name/*.cm[ao]")
-                          chn)
+                             "@OCamlStdlibDir@/$e.findlib_name/META")
+                          chn;
+                        if e.has_byte then
+                          output_content 
+                            (interpolate
+                               "@OCamlStdlibDir@/$e.findlib_name/*.cm[ao]")
+                            chn)
                      roots)
             end
 
