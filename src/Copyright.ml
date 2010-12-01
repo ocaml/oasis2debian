@@ -56,7 +56,7 @@ let license_exception ~ctxt exc =
               "License exception '%s' not defined"
               (string_of_license_exception exc)))
 
-let license_full ~ctxt l = 
+let license_full ~ctxt t = 
   let see_common = 
     Printf.sprintf "See '/usr/share/common-licenses/%s'."
   in
@@ -71,9 +71,10 @@ let license_full ~ctxt l =
     todo ~ctxt 
       (Printf.sprintf 
          "License '%s' not defined"
-         (OASISLicense.to_string l))
+         (OASISLicense.to_string 
+            t.pkg.OASISTypes.license))
   in
-    match l with 
+    match t.pkg.OASISTypes.license with 
       | DEP5License l ->
           begin
             let license = 
@@ -125,8 +126,31 @@ let license_full ~ctxt l =
                     | Some _ -> todo ()
                 end
 
-              else 
-                todo ()
+              else
+                begin
+                  match t.pkg.OASISTypes.license_file with 
+                    | Some fn when Sys.file_exists fn ->
+                        begin
+                          let chn = 
+                            open_in fn
+                          in
+                          let lst =
+                            ref []
+                          in
+                          let () = 
+                            try 
+                              while true do 
+                                lst := input_line chn :: !lst
+                              done
+                            with End_of_file ->
+                              close_in chn
+                          in
+                            String.concat "\n " (List.rev !lst)
+                        end
+
+                    | _ ->
+                        todo ()
+                end
           end
 
       | OtherLicense _ ->
@@ -154,7 +178,7 @@ let create ~ctxt t =
   in
 
   let license_full = 
-    license_full ~ctxt t.pkg.OASISTypes.license
+    license_full ~ctxt t
   in
 
   let license_exception =
