@@ -1,0 +1,4 @@
+* everything should goes to debian/tmp, avoid
+  OCAMLFIND_DESTDIR=debian/lib$PKG-ocaml-dev 
+* create a dh build system (see with dh expert like sgnb)
+
