@@ -58,7 +58,7 @@ let license_exception ~ctxt exc =
 
 let license_full ~ctxt t = 
   let see_common = 
-    Printf.sprintf "See '/usr/share/common-licenses/%s'."
+    Printf.sprintf "See '/usr/share/common-licenses/%s' for full text."
   in
   let min_ver =
     function
@@ -216,4 +216,7 @@ License: $license
 
 Files: debian/*
 Copyright: (C) ${year,%d} $t.uploader
-License: GPL-3+"))
+License: GPL-3+
+                
+ See '/usr/share/common-licenses/GPL-3' for full text.
+"))
