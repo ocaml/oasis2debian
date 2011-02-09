@@ -30,9 +30,12 @@ type deb_pkg =
       arch: string;
     }
 
+type build_depend =
+    string * OASISVersion.comparator option * [ `All | `Only of Arch.t * Arch.t list ]
+
 type t =
   {
-    build_depends: string list;
+    build_depends: build_depend list;
     description:   string;
     homepage:      string;
     uploader:      string;

@@ -29,10 +29,10 @@ let create t =
   in
 
   let build_depends =
-    match t.build_depends with 
-      | [] -> ""
-      | lst ->
-          String.concat sep t.build_depends
+    String.concat sep 
+      (List.map 
+         BuildDepends.to_string
+         t.build_depends)
   in
 
   let src_name = 

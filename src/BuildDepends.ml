@@ -75,7 +75,7 @@ let add_depends ?(arch_spec=`All) nm ver_opt st =
 
     SetDepends.add (nm, ver_opt, arch_spec) st
 
-let string_of_depends ~ctxt (nm, ver_opt, arch_spec) = 
+let to_string (nm, ver_opt, arch_spec) = 
   let arch_str = 
     Arch.Spec.to_string_build_depends arch_spec
   in
@@ -90,10 +90,11 @@ let string_of_depends ~ctxt (nm, ver_opt, arch_spec) =
                 | VEqual _ ->
                     ()
                 | VOr _ | VAnd _ ->
-                    error ~ctxt 
-                      "Version constraint '%s' on build depends '%s' is too complex"
-                      (string_of_comparator v)
-                      nm
+                    failwith 
+                      (Printf.sprintf
+                         "Version constraint '%s' on build depends '%s' is too complex"
+                         (string_of_comparator v)
+                         nm)
             end;
             Printf.sprintf " (%s)"
               (string_of_comparator v)
@@ -429,9 +430,7 @@ let get ~ctxt pkg =
       lst
   in
 
-    (* Translate depends into string *)
     SetDepends.fold
-      (fun dep lst ->
-         string_of_depends ~ctxt dep :: lst)
+      (fun dep lst -> dep :: lst)
       debian_depends
 
