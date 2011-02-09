@@ -33,7 +33,6 @@ type t =
     has_byte:     bool;
     has_native:   bool;
     has_dll:      bool;
-    has_hinterf:  bool;
     has_cmi:      bool;
   }
 
@@ -86,13 +85,6 @@ let create ~ctxt t =
                   libs))
          in
 
-         let () = 
-           prerr_endline "----";
-           List.iter 
-             prerr_endline 
-             generated_files
-         in
-           
          let has_extensions exts = 
            List.fold_left
              (fun acc ext ->
@@ -110,7 +102,6 @@ let create ~ctxt t =
              has_native   = has_extensions [".cmxa"; ".cmx"];
              has_byte     = has_extensions [".cma"; ".cmo"];
              has_cmi      = has_extensions [".cmi"];
-             has_hinterf  = has_extensions [".ml"; ".mli"];
            })
 
       findlib_roots
@@ -136,7 +127,7 @@ let create ~ctxt t =
     if not has_apidoc && 
        (* API doc is not already generated *)
 
-       List.exists (fun e -> e.has_hinterf) roots then
+       List.exists (fun e -> e.has_cmi) roots then
        (* There are .mli/.ml to create API doc *)
 
       begin
@@ -254,7 +245,7 @@ Section: Programming/OCaml");
                                "@OCamlStdlibDir@/$e.findlib_name/*.cmi")
                             chn;
 
-                        if e.has_hinterf then
+                        if e.has_cmi then
                           output_content 
                             (interpolate 
                                "@OCamlStdlibDir@/$e.findlib_name/*.ml*")
