@@ -32,7 +32,9 @@ let uploader =
               (Sys.getenv "DEBFULLNAME")
               (Sys.getenv "DEBEMAIL")
           with _ ->
-            failwith "Unable to guess uploader"))
+            failwith "Unable to guess the identity of the package maintainer. \
+                      Please set the environment variables DEBFULLNAME and \
+                      DEBEMAIL or use --uploader"))
 
 let deb_name =
   Conf.create 
