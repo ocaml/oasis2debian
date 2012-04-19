@@ -6,4 +6,8 @@
 * dh_install install.in avec usr/share/doc qd même
 * pas d'install de *.ml*
 * rules, pas de usr/bin si pas d'exec
+* pointless to install pa_*.cma into non-dev package
+* package doc suggest package doc (e.g. liboasis-ocaml-doc suggests liboasis-ocaml-doc)
+* List not indented (pb in Markdown to Debian description)
+* in oasis generated doc-base for manual points to HTML doc
 
