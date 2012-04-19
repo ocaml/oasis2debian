@@ -265,7 +265,7 @@ let get ~ctxt pkg =
               hd
 
           | [] ->
-              failwithf1
+              failwithf
                 "Cannot find file '%s'"
                 fn
     in

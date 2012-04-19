@@ -97,7 +97,7 @@ let assert_command ~ctxt cmd =
   match Sys.command cmd with 
     | 0 -> ()
     | n -> 
-        failwithf2
+        failwithf
           "Command '%s' exited with code %d" 
           cmd n
 
@@ -123,7 +123,7 @@ let assert_command_output ~ctxt cmd =
       | Unix.WEXITED 0 ->
           res
       | _ ->
-          failwithf1
+          failwithf
             "Command '%s' exited with non-zero exit code"
             cmd
 

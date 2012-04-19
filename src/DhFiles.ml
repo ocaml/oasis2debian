@@ -34,6 +34,7 @@ type t =
     has_native:   bool;
     has_dll:      bool;
     has_cmi:      bool;
+    (* TODO: dynlink *)
   }
 
 let create ~ctxt t = 
@@ -74,11 +75,12 @@ let create ~ctxt t =
                      let fns = 
                        OASISLibrary.generated_unix_files
                          ~ctxt
+                         ~source_file_exists:Sys.file_exists
+                         ~is_native:true
+                         ~has_native_dynlink:true
+                         ~ext_lib:".a"
+                         ~ext_dll:".so"
                          e
-                         Sys.file_exists
-                         (fun () -> true)
-                         (fun () -> ".a")
-                         (fun () -> ".so")
                      in
                        fns :: acc) 
                   []

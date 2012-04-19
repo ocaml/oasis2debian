@@ -74,59 +74,53 @@ let license_full ~ctxt t =
          (OASISLicense.to_string 
             t.pkg.OASISTypes.license))
   in
+  let debian_licenses = 
+    [
+      apache, 
+      [`Ver "2.0", "Aparche-2.0"];
+      artistic, 
+      [`Any, "Artistic"];
+      bsd3, 
+      [`Any, "BSD"];
+      gpl,
+      [`Ver "1", "GPL-1";
+       `Ver "2", "GPL-2";
+       `Ver "3", "GPL-3";
+       `None, "GPL"];
+      gfdl,
+      [`Ver "1.2", "GFDL-1.2";
+       `Ver "1.3", "GFDL-1.3";
+       `None, "GFDL"];
+      lgpl,
+      [`Ver "2", "LGPL-2";
+       `Ver "2.1", "LGPL-2.1";
+       `Ver "3", "LGPL-3";
+       `None, "LGPL"]
+    ]
+  in
     match t.pkg.OASISTypes.license with 
       | DEP5License l ->
           begin
-            let license = 
-              l.OASISLicense.license
-            in
-              if license = apache then
+            let process_one l = 
+              try
                 begin
-                  match min_ver l.version with 
-                    | Some "2.0" -> see_common "Apache-2.0"
-                    | _ -> todo ()
+                  let vers = List.assoc l.license debian_licenses in
+                    try 
+                      let ver = min_ver l.version in
+                      let _, debian_common = 
+                        List.find
+                          (fun (ver', _) ->
+                             match ver, ver' with 
+                               | Some v, `Ver v' -> v = v'
+                               | None, `None | _, `Any -> true
+                               | None, `Ver _ | Some _, `None -> false)
+                          vers
+                      in
+                        see_common debian_common
+                    with Not_found ->
+                      todo ()
                 end
-
-              else if license = artistic then
-                begin
-                  see_common "Artistic"
-                end
-
-              else if license = bsd3 then 
-                begin
-                  see_common "BSD"
-                end
-
-              else if license = gpl then
-                begin
-                  match min_ver l.version with 
-                    | Some "1" -> see_common "GPL-1"
-                    | Some "2" -> see_common "GPL-2"
-                    | Some "3" -> see_common "GPL-3"
-                    | None -> see_common "GPL"
-                    | Some _ -> todo ()
-                end
-
-              else if license = gfdl then
-                begin
-                  match min_ver l.version with 
-                    | Some "1.2" -> see_common "GFDL-1.2"
-                    | Some "1.3" -> see_common "GFDL-1.3"
-                    | None -> see_common "GFDL"
-                    | Some _ -> todo ()
-                end
-
-              else if license = lgpl then
-                begin
-                  match min_ver l.version with 
-                    | Some "2" -> see_common "LGPL-2"
-                    | Some "2.1" -> see_common "LGPL-2.1"
-                    | Some "3" -> see_common "LGPL-3"
-                    | None -> see_common "LGPL"
-                    | Some _ -> todo ()
-                end
-
-              else
+              with Not_found ->
                 begin
                   match t.pkg.OASISTypes.license_file with 
                     | Some fn when Sys.file_exists fn ->
@@ -151,6 +145,15 @@ let license_full ~ctxt t =
                     | _ ->
                         todo ()
                 end
+            in
+            let rec process acc =
+              function
+                | DEP5Unit l ->
+                    (process_one l) :: acc
+                | DEP5Or lst | DEP5And lst ->
+                    List.fold_left process acc lst
+            in
+              String.concat "\n" (List.rev (process [] l))
           end
 
       | OtherLicense _ ->
@@ -183,11 +186,29 @@ let create ~ctxt t =
 
   let license_exception =
     match t.pkg.OASISTypes.license with 
-      | DEP5License {exceptions = lst} when lst <> [] ->
+      | DEP5License l ->
+          let lst = 
+            let rec collect_excpt acc =
+              function 
+                | DEP5Unit {excption = Some e} ->
+                    if not (List.mem e acc) then
+                      e :: acc
+                    else 
+                      acc
+                | DEP5Unit _ ->
+                    acc
+                | DEP5Or lst | DEP5And lst ->
+                    List.fold_left collect_excpt acc lst
+            in
+              collect_excpt [] l
+          in
           let sep  = 
             "\n\n"
           in
-            sep ^ (String.concat sep (List.map (license_exception ~ctxt) lst))
+            if lst <> [] then
+              sep ^ (String.concat sep (List.map (license_exception ~ctxt) lst))
+            else 
+              ""
 
       | _ ->
           ""
