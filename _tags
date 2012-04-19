@@ -20,8 +20,44 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: b6a1ff92a6c3f18cea9f467e5438e786)
+# DO NOT EDIT (digest: 263ff8c84033e5bb80f738b31f25aa1e)
+# Ignore VCS directories, you can use the same kind of rule outside 
+# OASIS_START/STOP if you want to exclude directories that contains 
+# useless stuff for the build process
+<**/.svn>: -traverse
+<**/.svn>: not_hygienic
+".bzr": -traverse
+".bzr": not_hygienic
+".hg": -traverse
+".hg": not_hygienic
+".git": -traverse
+".git": not_hygienic
+"_darcs": -traverse
+"_darcs": not_hygienic
 # Executable oasis2debian
+"src/Main.byte": pkg_fileutils
+"src/Main.byte": pkg_oasis
+"src/Main.byte": pkg_oasis.base
+"src/Main.byte": pkg_xstrp4
+"src/Main.byte": pkg_pcre
+"src/Main.byte": pkg_debian-formats
+"src/Main.byte": pkg_xdg-basedir
+"src/Main.byte": pkg_inifiles
+<src/*.ml{,i}>: pkg_fileutils
+<src/*.ml{,i}>: pkg_oasis
+<src/*.ml{,i}>: pkg_oasis.base
+<src/*.ml{,i}>: pkg_xstrp4
+<src/*.ml{,i}>: pkg_pcre
+<src/*.ml{,i}>: pkg_debian-formats
+<src/*.ml{,i}>: pkg_xdg-basedir
+<src/*.ml{,i}>: pkg_inifiles
+# Executable test
+"test/test.byte": pkg_oUnit
+"test/test.byte": pkg_fileutils
+"test/test.byte": pkg_unix
+<test/*.ml{,i}>: pkg_oUnit
+<test/*.ml{,i}>: pkg_fileutils
+<test/*.ml{,i}>: pkg_unix
 # OASIS_STOP
 
 "src/ActInit.ml": syntax_camlp4o
