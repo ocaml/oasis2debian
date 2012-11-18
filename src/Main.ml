@@ -51,7 +51,7 @@ let () =
                 ActHelp.run
             | str ->
                 ActHelp.display ~ctxt stderr;
-                error ~ctxt "No action %s defined" str;
+                error ~ctxt "No action %s defined.  Try \"help\"." str;
                 exit 2
         in
           run ~ctxt args
