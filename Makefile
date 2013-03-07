@@ -23,8 +23,9 @@ OCAMLRUNPARAM=b
 export OCAMLRUNPARAM
 
 #TESTFLAGS=-verbose
+default: test reinstall
 #default: reinstall
-#reinstall: build
+reinstall: build
 
 
 # OASIS_START
