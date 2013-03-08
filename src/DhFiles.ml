@@ -23,7 +23,7 @@
   *)
 
 open OASISTypes
-open OASISLibrary 
+open OASISFindlib
 open ExtString
 open Common
 
@@ -42,15 +42,15 @@ let create ~ctxt t =
     debian_with_fn (deb_pkg.name^"."^ext)
   in
 
-  let findlib_roots = 
-    OASISLibrary.group_libs t.pkg_generic 
+  let findlib_roots, _, _ = 
+    OASISFindlib.findlib_mapping t.pkg_generic 
   in
 
   let roots = 
     List.rev_map 
       (fun grp ->
          let findlib_name = 
-           OASISLibrary.findlib_of_group grp 
+           OASISFindlib.findlib_of_group grp 
          in
 
          let libs = 
@@ -58,8 +58,8 @@ let create ~ctxt t =
              function
                | Container (_, lst) ->
                    List.fold_left fold acc lst
-               | Package (_, cs, bs, lib, lst) ->
-                   List.fold_left fold ((cs, bs, lib) :: acc) lst
+               | Package (_, cs, bs, a, lst) ->
+                   List.fold_left fold ((cs, bs, a) :: acc) lst
            in
              fold [] grp
          in
@@ -71,18 +71,29 @@ let create ~ctxt t =
            List.flatten
              (List.flatten 
                 (List.fold_left
-                  (fun acc e -> 
-                     let fns = 
-                       OASISLibrary.generated_unix_files
-                         ~ctxt
-                         ~source_file_exists:Sys.file_exists
-                         ~is_native:true
-                         ~has_native_dynlink:true
-                         ~ext_lib:".a"
-                         ~ext_dll:".so"
-                         e
-                     in
-                       fns :: acc) 
+                  (fun acc -> 
+                     function
+                       | cs, bs, `Library lib ->
+                           let fns = 
+                             OASISLibrary.generated_unix_files
+                               ~ctxt
+                               ~source_file_exists:Sys.file_exists
+                               ~is_native:true
+                               ~has_native_dynlink:true
+                               ~ext_lib:".a"
+                               ~ext_dll:".so"
+                               (cs, bs, lib)
+                           in
+                             fns :: acc
+                       | cs, bs, `Object obj ->
+                           let fns = 
+                             OASISObject.generated_unix_files
+                               ~ctxt 
+                               ~source_file_exists:Sys.file_exists
+                               ~is_native:true
+                               (cs, bs, obj)
+                           in
+                             fns :: acc) 
                   []
                   libs))
          in
@@ -120,7 +131,7 @@ let create ~ctxt t =
                (ExternalTool "ocamldoc") 
                doc.doc_build_tools
 
-         | Flag _ | Library _ | Executable _ | SrcRepo _ | Test _ ->
+         | Flag _ | Object _ | Library _ | Executable _ | SrcRepo _ | Test _ ->
              false)
       t.pkg_generic.sections
   in
@@ -214,8 +225,8 @@ Section: Programming/OCaml");
                    (mk_doc_base docdir cs doc);
                  n + 1
 
-             | Library _ | Executable _ | Flag _ 
-             | Test _ | SrcRepo _ ->
+             | Object _ | Library _ | Executable _ 
+             | Flag _ | Test _ | SrcRepo _ ->
                  n)
         1
         t.pkg_generic.sections

@@ -175,7 +175,8 @@ let get ~ctxt pkg =
         (fun ((exec, fndlb) as acc) ->
            function
              | Library (_, bs, _) 
-             | Executable (_, bs, _) ->
+             | Executable (_, bs, _)
+             | Object (_, bs, _) ->
                  depends_of_bs bs acc
 
              | Test (_, test) ->

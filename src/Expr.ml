@@ -61,7 +61,7 @@ let create ~ctxt pkg =
                    (string_of_bool 
                       (choose_simple ~ctxt conf flag.flag_default))
                    conf
-             | Library _ | Executable _ | Doc _ | Test _ | SrcRepo _ ->
+             | Object _ | Library _ | Executable _ | Doc _ | Test _ | SrcRepo _ ->                 
                  conf)
         conf
         pkg.sections

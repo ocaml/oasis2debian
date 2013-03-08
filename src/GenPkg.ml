@@ -43,22 +43,25 @@ let executable_name =
 
 let set ~ctxt t = 
 
-  let lib, doc, bin =
+  let obj, lib, doc, bin =
     List.fold_left
-      (fun ((lib, doc, bin) as acc) ->
+      (fun ((obj, lib, doc, bin) as acc) ->
          function
+           | Object (cs, bs, obj') ->
+               ((cs, bs, obj') :: obj), lib, doc, bin
+
            | Library (cs, bs, lib') ->
-               ((cs, bs, lib') :: lib), doc, bin
+               obj, ((cs, bs, lib') :: lib), doc, bin
 
            | Executable (cs, bs, exec) ->
-               lib, doc, ((cs, bs, exec) :: bin)
+               obj, lib, doc, ((cs, bs, exec) :: bin)
 
            | Doc (cs, doc') ->
-               lib, ((cs, doc') :: doc), bin
+               obj, lib, ((cs, doc') :: doc), bin
 
            | Flag _ | Test _ | SrcRepo _ ->
                acc)
-      ([], [], [])
+      ([], [], [], [])
       t.pkg_generic.sections
   in
 
@@ -92,11 +95,12 @@ let set ~ctxt t =
       end
     else
       begin
-        match OASISLibrary.group_libs t.pkg_generic with 
+        let groups, _, _ = OASISFindlib.findlib_mapping t.pkg_generic in
+        match groups with 
           | [hd] ->
               (* First method: if there is a single findlib library use its name
                *)
-              OASISLibrary.findlib_of_group hd
+              OASISFindlib.findlib_of_group hd
 
           | _ ->
               (* Default method: try to guess the target name using source name 
@@ -128,8 +132,8 @@ let set ~ctxt t =
 
   let t =
     (* Determine if we have bin+dev+runtime *)
-    match lib, bin with
-      | [], bin ->
+    match lib, obj, bin with
+      | [], [], bin ->
           begin
             (* Only a binary package, name = source name *)
             let exec_name = 
@@ -143,7 +147,7 @@ let set ~ctxt t =
                 {t with deb_exec = Some (mk_deb exec_name bin)} 
           end
 
-      | lib, bin ->
+      | lib, obj, bin ->
           begin 
             (* Library only *)
             let t  = 

@@ -39,6 +39,7 @@ let create ~ctxt expr pkg =
     List.fold_left
       (fun acc e ->
          match e with 
+           | Object (_, bs, _)
            | Library (_, bs, _)
            | Executable (_, bs, _) ->
                if eval bs.bs_build && eval bs.bs_install then
