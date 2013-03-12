@@ -73,22 +73,28 @@ let debian_fn =
 let debian_not_exist fn =
   not (test Exists (debian_fn fn))
 
+(** Execute [f] on a file inside debian/, in append mode. *)
+let debian_with_append_fn fn f =
+  let real_fn = 
+    debian_fn fn 
+  in
+  let () = 
+    mkdir ~parent:true (FilePath.dirname real_fn)
+  in
+  let chn = 
+    open_out_gen 
+      [Open_wronly; Open_append; Open_creat; Open_text]
+      0o666
+      real_fn
+  in
+    f chn;
+    close_out chn
+
 (** Only execute [f] if the file doesn't exist 
   *)
 let debian_with_fn fn f = 
   if debian_not_exist fn then
-    begin
-      let real_fn = 
-        debian_fn fn
-      in
-      let () = 
-        mkdir ~parent:true (FilePath.dirname real_fn)
-      in
-      let chn = open_out real_fn
-      in
-        f chn;
-        close_out chn
-    end
+    debian_with_append_fn fn f
 
 (** Run a command and file if exit code is non-zero
   *)
@@ -130,6 +136,24 @@ let assert_command_output ~ctxt cmd =
 let output_content str chn = 
   output_string chn (str^"\n")
 
+let lines_of_file fn =
+  let chn = open_in fn in
+  let lst = ref [] in
+  let () =
+    try 
+      while true do
+        lst := (input_line chn) :: !lst
+      done;
+    with End_of_file ->
+      close_in chn
+  in
+    List.rev !lst
+
+let file_of_lines fn lst =
+  let chn = open_out fn in
+    output_string chn (String.concat "\n" lst);
+    output_string chn "\n";
+    close_out chn
 
 module MapString = Map.Make(String)
 

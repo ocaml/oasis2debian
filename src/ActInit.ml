@@ -30,15 +30,21 @@ open Common
 let itp =
   Conf.create
     ~cli:"--itp"
-    "Bug number of the ITP for the package"
+    "int Bug number of the ITP for the package."
     Conf.ShortInput
 
 let bts_query =
   Conf.create_full 
     ~cli:"--bts-query"
     bool_of_string
-    "Query the BTS for ITP (true/false)"
+    "bool Query the BTS for ITP (true/false)."
     (Conf.Value true)
+
+let distribution =
+  Conf.create
+    ~cli:"--distribution"
+    "str Distribution for the package."
+    Conf.ShortInput
 
 let dh_compat = "7"
 
@@ -78,11 +84,14 @@ let run ~ctxt args =
 
     if debian_not_exist "changelog" then
       begin
-        let itp = 
-          Conf.get ~ctxt itp 
-        in
         let opts =
           ""
+        in
+        let opts = 
+          if Conf.is_set itp then
+            opts^" --closes "^(Conf.get ~ctxt itp)
+          else
+            opts^" 'Initial release.'"
         in
         let opts =
           if Conf.get ~ctxt bts_query then
@@ -90,9 +99,15 @@ let run ~ctxt args =
           else
             opts^" --no-query"
         in
+        let opts =
+          if Conf.is_set distribution then
+            opts^" --distribution "^(Conf.get ~ctxt distribution)
+          else 
+            opts
+        in
           assert_command ~ctxt  
             (interpolate 
-               "dch --create --package $t.deb_name --newversion $pkg_version-1 --closes $itp $opts")
+               "dch --create --package $t.deb_name --newversion $pkg_version-1 $opts")
       end
   in
 
@@ -100,7 +115,10 @@ let run ~ctxt args =
     Control.create t;
     Copyright.create ~ctxt t;
     Rules.create t;
-    DhFiles.create ~ctxt t
+    DhFiles.create ~ctxt t;
+    Group.create ~ctxt t;
+    DpkgStatOverride.create ~ctxt t;
+    DhDirs.create ~ctxt t;
   in 
 
     ()

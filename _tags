@@ -65,3 +65,5 @@
 "src/Copyright.ml": syntax_camlp4o
 "src/Rules.ml": syntax_camlp4o
 "src/DhFiles.ml": syntax_camlp4o
+"src/Group.ml": syntax_camlp4o
+"src/DpkgStatOverride.ml": syntax_camlp4o

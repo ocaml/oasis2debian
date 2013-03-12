@@ -265,10 +265,16 @@ Section: Programming/OCaml");
                           chn;
 
                         if e.has_native then
-                          output_content
-                            (interpolate
-                               "OPT: @OCamlStdlibDir@/$e.findlib_name/*.cmx*")
-                            chn;
+                          begin
+                            output_content
+                              (interpolate
+                                 "OPT: @OCamlStdlibDir@/$e.findlib_name/*.cmx")
+                              chn;
+                            output_content
+                              (interpolate
+                                  "OPT: @OCamlStdlibDir@/$e.findlib_name/*.cmxa")
+                              chn
+                          end;
 
                         if e.has_dll then
                           output_content
@@ -319,6 +325,11 @@ Section: Programming/OCaml");
                           output_content 
                             (interpolate
                                "@OCamlStdlibDir@/$e.findlib_name/*.cm[ao]")
+                            chn;
+                        if e.has_native then
+                          output_content
+                            (interpolate 
+                               "@OCamlStdlibDir@/$e.findlib_name/*.cmxs")
                             chn)
                      roots)
             end
@@ -357,3 +368,80 @@ Section: Programming/OCaml");
                     ()
             end
     end
+
+let insertion_point =
+  "# Insertion point for oasis2debian, do not remove."
+
+let snippet_start snippet_name = 
+  Printf.sprintf "# oasis2debian snippet '%s' start." snippet_name
+
+let snippet_end snippet_name =
+  Printf.sprintf "# oasis2debian snippet '%s' end." snippet_name
+
+
+(** Split a script file around its insertion point.
+  *)
+let dh_script_split fn =
+  let rec split = 
+    function
+      | hd :: tl ->
+          if hd = insertion_point then
+            [], hd, tl
+          else
+            let before, cur, after = 
+              split tl
+            in
+              hd :: before, cur, after
+      | [] ->
+          failwith 
+            (Printf.sprintf
+               "'%s' not found in file '%s'"
+               insertion_point fn)
+  in
+    if debian_not_exist fn then
+      debian_with_fn
+        fn
+        (output_content
+           (interpolate "\
+#!/bin/sh
+
+set -e
+
+$insertion_point"));
+    split (lines_of_file (debian_fn fn))
+
+
+(** Append data to debian/pkg.postinst.
+  *)
+let dh_postinst pkg snippet_name content = 
+  let basename = pkg^".postinst" in
+  let before, cur, after =
+    dh_script_split basename
+  in
+    file_of_lines
+      (debian_fn basename)
+      (before @ 
+       [snippet_start snippet_name;
+        content;
+        snippet_end snippet_name;
+        ""; cur] @ after)
+
+(** Prepend data to debian/pkg.prerm.
+  *)
+let dh_prerm pkg snippet_name content = 
+  let basename = pkg^".prerm" in
+  let before, cur, after =
+    dh_script_split basename
+  in
+    file_of_lines
+      (debian_fn basename)
+      (before @
+       [cur; ""; snippet_start snippet_name;
+        content;
+        snippet_end snippet_name] @ after)
+
+
+let dh_dirs pkg dir =
+  debian_with_append_fn
+    (pkg^".dirs")
+    (output_content dir)

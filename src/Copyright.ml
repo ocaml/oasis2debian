@@ -238,6 +238,6 @@ License: $license
 Files: debian/*
 Copyright: (C) ${year,%d} $t.uploader
 License: GPL-3+
-                
+
  See '/usr/share/common-licenses/GPL-3' for full text.
 "))
