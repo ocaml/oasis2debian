@@ -34,7 +34,7 @@ type t =
     has_native:   bool;
     has_dll:      bool;
     has_cmi:      bool;
-    (* TODO: dynlink *)
+    has_cmxs:     bool;
   }
 
 let create ~ctxt t = 
@@ -79,7 +79,9 @@ let create ~ctxt t =
                                ~ctxt
                                ~source_file_exists:Sys.file_exists
                                ~is_native:true
-                               ~has_native_dynlink:true
+                               ~has_native_dynlink:
+                               (bool_of_string 
+                                  (BaseStandardVar.native_dynlink ()))
                                ~ext_lib:".a"
                                ~ext_dll:".so"
                                (cs, bs, lib)
@@ -115,6 +117,7 @@ let create ~ctxt t =
              has_native   = has_extensions [".cmxa"; ".cmx"];
              has_byte     = has_extensions [".cma"; ".cmo"];
              has_cmi      = has_extensions [".cmi"];
+             has_cmxs     = has_extensions [".cmxs"];
            })
 
       findlib_roots
@@ -326,7 +329,7 @@ Section: Programming/OCaml");
                             (interpolate
                                "@OCamlStdlibDir@/$e.findlib_name/*.cm[ao]")
                             chn;
-                        if e.has_native then
+                        if e.has_cmxs then
                           output_content
                             (interpolate 
                                "@OCamlStdlibDir@/$e.findlib_name/*.cmxs")

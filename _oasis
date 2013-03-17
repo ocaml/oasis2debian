@@ -12,7 +12,7 @@ FilesAB:     src/Version.ml.ab
 Executable oasis2debian
   Path:         src
   MainIs:       Main.ml
-  BuildDepends: oasis (>= 0.2.0), oasis.base, 
+  BuildDepends: oasis (>= 0.3.1), oasis.base, 
                 xstrp4 (>= 1.8), 
                 fileutils (>= 0.4.2), 
                 pcre, 

@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: c0deed2e3849bcbb630b6c2be2fcfbbb) *)
+(* DO NOT EDIT (digest: 96893f4af218c48c9d244581d361e83f) *)
 This is the INSTALL file for the oasis2debian distribution.
 
 This package uses OASIS to generate its build system. See section OASIS for
@@ -11,7 +11,7 @@ Dependencies
 In order to compile this package, you will need:
 * ocaml for all, test main, test ocaml-sqlexpr
 * findlib
-* oasis (>= 0.2.0) for executable oasis2debian
+* oasis (>= 0.3.1) for executable oasis2debian
 * xstrp4 (>= 1.8) for executable oasis2debian
 * fileutils (>= 0.4.2)
 * pcre for executable oasis2debian
