@@ -37,6 +37,12 @@ let create t =
            *)
           "tmp"
   in
+  let has_bin = 
+    t.deb_exec <> None 
+  in
+  let has_lib =
+    t.deb_dev <> None 
+  in
 
   let docdir = 
     match docdir t with 
@@ -47,7 +53,7 @@ let create t =
   in
     debian_with_fn "rules"
       (output_content 
-         (interpolate "\
+         ((interpolate "\
 #!/usr/bin/make -f
 # -*- makefile -*-
 
@@ -68,7 +74,14 @@ export OCAMLFIND_LDCONF
 
 .PHONY: override_dh_auto_configure
 override_dh_auto_configure:
-	ocaml setup.ml -configure --prefix /usr --destdir '\$(DESTDIR)'$docdir
+	ocaml setup.ml -configure $docdir \\
+		--destdir '\$(DESTDIR)' \\
+		--prefix '/usr' \\
+		--mandir '\$\$prefix/share/man' \\
+		--infodir '\$\$prefix/share/info' \\
+		--sysconfdir '/etc' \\
+		--localstatedir '/var' \\
+		--libexecdir '\$\$prefix/lib/'
 
 .PHONY: override_dh_auto_build
 override_dh_auto_build:
@@ -80,9 +93,18 @@ override_dh_auto_test:
 	ocaml setup.ml -test
 
 .PHONY: override_dh_auto_install
-override_dh_auto_install:
-	mkdir -p '\$(DESTDIR)/usr/bin'
-	mkdir -p '\$(OCAMLFIND_DESTDIR)'
+override_dh_auto_install:")^(
+  if has_bin then
+    interpolate "
+	mkdir -p '\$(DESTDIR)/usr/bin'"
+  else
+    "")^(
+  if has_lib then
+    "
+	mkdir -p '$(OCAMLFIND_DESTDIR)'"
+  else 
+    "")^(
+  interpolate "
 	ocaml setup.ml -install 
 
 .PHONY: override_dh_install
@@ -91,5 +113,5 @@ override_dh_install:
 
 .PHONY: override_dh_auto_clean
 override_dh_auto_clean:
-	ocaml setup.ml -distclean"));
+	ocaml setup.ml -distclean")));
     Unix.chmod (debian_fn "rules") 0o0755 

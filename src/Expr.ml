@@ -66,6 +66,17 @@ let create ~ctxt pkg =
         conf
         pkg.sections
     in
+    let conf = 
+      (* These are implicit flags.
+       * TODO: create a list of implicit flags in OASIS.
+       *)
+      List.fold_left
+        (fun conf (k, v) ->
+           MapString.add k v conf)
+        conf
+        ["tests", "true";
+         "docs", "true"]
+    in
       MapArch.add arch conf mp
   in
 

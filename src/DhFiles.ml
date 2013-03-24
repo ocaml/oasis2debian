@@ -238,11 +238,12 @@ Section: Programming/OCaml");
   in
 
     begin
-      match t.deb_exec with 
-        | Some deb_pkg ->
+      match t.deb_exec, t.deb_dev with 
+        | Some deb_pkg, Some _ ->
             dh_with_fn deb_pkg "install"
               (output_content "usr/bin")
-        | None ->
+        | Some _, None 
+        | None, _ ->
             ()
     end;
 

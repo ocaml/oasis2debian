@@ -1,4 +1,4 @@
-OASISFormat: 0.2
+OASISFormat: 0.3
 Name:        oasis2debian
 Version:     0.1.0
 Synopsis:    Create and maintain Debian package for an OASIS package
@@ -24,14 +24,8 @@ Executable test
   Path:         test
   MainIs:       test.ml
   Install:      false
-  BuildDepends: oUnit (>= 1.1.0), fileutils (>= 0.4.2), unix
+  BuildDepends: oUnit (>= 2.0.0), fileutils (>= 0.4.2), unix, oasis
 
 Test main
   Command: $test -exec $oasis2debian
-  TestTools: oasis2debian, test
-  Run: false
-
-Test "ocaml-sqlexpr"
-  Command: $oasis2debian update
-  TestTools: oasis2debian
-  WorkingDirectory: /home/gildor/debian/pkg-ocaml-maint/packages/ocaml-sqlexpr
+  TestTools: oasis2debian, test, tar, ocamlmod

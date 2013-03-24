@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: 263ff8c84033e5bb80f738b31f25aa1e)
+# DO NOT EDIT (digest: d161ee651e970b488f7fbdded448d3cb)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -55,9 +55,11 @@
 "test/test.byte": pkg_oUnit
 "test/test.byte": pkg_fileutils
 "test/test.byte": pkg_unix
+"test/test.byte": pkg_oasis
 <test/*.ml{,i}>: pkg_oUnit
 <test/*.ml{,i}>: pkg_fileutils
 <test/*.ml{,i}>: pkg_unix
+<test/*.ml{,i}>: pkg_oasis
 # OASIS_STOP
 
 "src/ActInit.ml": syntax_camlp4o
