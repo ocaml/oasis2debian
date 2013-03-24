@@ -411,6 +411,8 @@ let dh_script_split fn =
 
 set -e
 
+#DEBHELPER#
+
 $insertion_point"));
     split (lines_of_file (debian_fn fn))
 
