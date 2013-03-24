@@ -28,7 +28,8 @@ let oasis2debian =
 
 let args_for_tarball =
   ["ocamlify-0.0.1.tar.gz", 
-   ["--homepage"; "http://forge.ocamlcore.org/projects/ocamlify"];
+   ["--homepage"; "http://forge.ocamlcore.org/projects/ocamlify";
+    "--no-manpage"; "usr/bin/ocamlify"];
   
    "ocamlmod-0.0.3.tar.gz",
    ["--homepage"; "http://forge.ocamlcore.org/projects/ocamlmod"];
@@ -38,7 +39,8 @@ let args_for_tarball =
 		"--group"; "sekred,/var/lib/sekred";
 		"--dh-dirs"; "sekred,var/lib/sekred/domains";
 		"--dpkg-statoverride"; "/usr/bin/sekred,root,sekred,2755";
-		"--dpkg-statoverride"; "/var/lib/sekred/domains,root,sekred,1730"];
+		"--dpkg-statoverride"; "/var/lib/sekred/domains,root,sekred,1730";
+    "--no-manpage"; "usr/bin/sekred"];
   ]
 
 let tests = 

@@ -119,6 +119,6 @@ let run ~ctxt args =
     Group.create ~ctxt t;
     DpkgStatOverride.create ~ctxt t;
     DhDirs.create ~ctxt t;
+    LintianOverrides.create ~ctxt t;
   in 
-
     ()
