@@ -23,7 +23,7 @@ open OASISTypes
 open Common
 open ExtString
 
-let create t = 
+let create ~ctxt t = 
   let sep = 
     ",\n  "
   in
@@ -37,6 +37,13 @@ let create t =
 
   let src_name = 
     t.deb_name
+  in
+
+  let exec_depends =
+    if Conf.get ~ctxt Group.group <> None then
+      "adduser, "
+    else
+      ""
   in
 
   let description = 
@@ -101,7 +108,7 @@ Vcs-Browser: http://git.debian.org/?p=pkg-ocaml-maint/packages/${src_name}.git")
                    output_intro deb_pkg;
                    output_content 
                      (interpolate "\
-Depends: \${misc:Depends}, \${ocaml:Depends}
+Depends: $exec_depends\${misc:Depends}, \${ocaml:Depends}
 Description: $t.pkg.synopsis
  $description");
                    if t.deb_dev <> None then

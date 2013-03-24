@@ -112,7 +112,7 @@ let run ~ctxt args =
   in
 
   let () = 
-    Control.create t;
+    Control.create ~ctxt t;
     Copyright.create ~ctxt t;
     Rules.create t;
     DhFiles.create ~ctxt t;
