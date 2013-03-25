@@ -28,15 +28,6 @@ let create ~ctxt t =
     else
       ""
   in
-  let author =
-    try
-      Printf.sprintf "%s <%s>"
-        (Sys.getenv "DEBFULLNAME")
-        (Sys.getenv "DEBEMAIL")
-    with Not_found ->
-      failwith 
-        "Set author using DEBFULLNAME and DEBEMAIL environment variables."
-  in
     debian_with_fn 
       "changelog"
       (output_content
@@ -46,6 +37,6 @@ $t.pkg.name ($pkg_version-1) $distribution; urgency=low
   * Initial release.$closes
   * Generated with oasis2debian v${Version.ver}.
 
- -- $author  ${date}"))
+ -- $t.uploader  ${date}"))
 
 
