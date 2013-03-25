@@ -20,7 +20,7 @@
 ################################################################################
 
 # OASIS_START
-# DO NOT EDIT (digest: d161ee651e970b488f7fbdded448d3cb)
+# DO NOT EDIT (digest: c932dfb6daa5bda5609b5c58855b5e6e)
 # Ignore VCS directories, you can use the same kind of rule outside 
 # OASIS_START/STOP if you want to exclude directories that contains 
 # useless stuff for the build process
@@ -43,6 +43,7 @@
 "src/Main.byte": pkg_debian-formats
 "src/Main.byte": pkg_xdg-basedir
 "src/Main.byte": pkg_inifiles
+"src/Main.byte": pkg_calendar
 <src/*.ml{,i}>: pkg_fileutils
 <src/*.ml{,i}>: pkg_oasis
 <src/*.ml{,i}>: pkg_oasis.base
@@ -51,6 +52,7 @@
 <src/*.ml{,i}>: pkg_debian-formats
 <src/*.ml{,i}>: pkg_xdg-basedir
 <src/*.ml{,i}>: pkg_inifiles
+<src/*.ml{,i}>: pkg_calendar
 # Executable test
 "test/test.byte": pkg_oUnit
 "test/test.byte": pkg_fileutils
@@ -64,6 +66,7 @@
 
 "src/ActInit.ml": syntax_camlp4o
 "src/Control.ml": syntax_camlp4o
+"src/Changelog.ml": syntax_camlp4o
 "src/Copyright.ml": syntax_camlp4o
 "src/Rules.ml": syntax_camlp4o
 "src/DhFiles.ml": syntax_camlp4o

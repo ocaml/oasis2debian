@@ -29,7 +29,8 @@ let oasis2debian =
 let args_for_tarball =
   ["ocamlify-0.0.1.tar.gz", 
    ["--homepage"; "http://forge.ocamlcore.org/projects/ocamlify";
-    "--no-manpage"; "usr/bin/ocamlify"];
+    "--no-manpage"; "usr/bin/ocamlify";
+    "--description"; "Extended description of ocamlify."];
   
    "ocamlmod-0.0.3.tar.gz",
    ["--homepage"; "http://forge.ocamlcore.org/projects/ocamlmod"];

@@ -24,6 +24,8 @@ open OASISUtils
 open OASISMessage
 open OASISTypes
 
+exception ExitCode of int (** Exit with this exit code. *)
+
 type deb_pkg =
     {
       name: string;

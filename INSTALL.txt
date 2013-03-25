@@ -1,5 +1,5 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: b83bfe827d8d8aad6e30959d0c601d33) *)
+(* DO NOT EDIT (digest: 22e1a572dc120ddf5d09e000ae553339) *)
 This is the INSTALL file for the oasis2debian distribution.
 
 This package uses OASIS to generate its build system. See section OASIS for
@@ -18,6 +18,7 @@ In order to compile this package, you will need:
 * debian-formats (>= 0.0.1) for executable oasis2debian
 * xdg-basedir (>= 0.0.1) for executable oasis2debian
 * inifiles (>= 1.2) for executable oasis2debian
+* calendar for executable oasis2debian
 * oUnit (>= 2.0.0) for executable test
 * tar for test main
 * ocamlmod for test main

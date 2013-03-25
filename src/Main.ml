@@ -21,6 +21,7 @@
 
 
 open OASISMessage
+open Common
 
 let () = 
   let () = 
@@ -33,33 +34,39 @@ let () =
     {(!OASISContext.default) with 
          OASISContext.ignore_plugins = true}
   in
-
-    if Array.length Sys.argv >= 2 then
-      begin
-        let args = 
-          Array.sub Sys.argv 1 ((Array.length Sys.argv) - 1)
-        in
-        let run =
-          match Sys.argv.(1) with 
-            | "init" ->
-                ActInit.run
-            | "get" ->
-                ActGet.run
-            | "update" ->
-                ActUpdate.run
-            | "help" ->
-                ActHelp.run
-            | str ->
-                ActHelp.display ~ctxt stderr;
-                error ~ctxt "No action %s defined.  Try \"help\"." str;
-                exit 2
-        in
-          run ~ctxt args
-      end
-    else
-      begin
-        ActHelp.display ~ctxt stderr;
-        error ~ctxt "Not enough arguments";
-        exit 2
-      end
+    try
+      if Array.length Sys.argv >= 2 then
+        begin
+          let args = 
+            Array.sub Sys.argv 1 ((Array.length Sys.argv) - 1)
+          in
+          let run =
+            match Sys.argv.(1) with 
+              | "init" ->
+                  ActInit.run
+              | "get" ->
+                  ActGet.run
+              | "update" ->
+                  ActUpdate.run
+              | "help" ->
+                  ActHelp.run
+              | str ->
+                  ActHelp.display ~ctxt stderr;
+                  error ~ctxt "No action %s defined.  Try \"help\"." str;
+                  exit 2
+          in
+            run ~ctxt args
+        end
+      else
+        begin
+          ActHelp.display ~ctxt stderr;
+          error ~ctxt "Not enough arguments";
+          exit 2
+        end
+    with 
+      | Failure str ->
+          error ~ctxt "%s" str;
+          exit 1
+      | ExitCode i ->
+          exit i
 

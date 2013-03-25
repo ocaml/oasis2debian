@@ -27,25 +27,6 @@ open OASISMessage
 open FileUtil
 open Common
 
-let itp =
-  Conf.create
-    ~cli:"--itp"
-    "int Bug number of the ITP for the package."
-    Conf.ShortInput
-
-let bts_query =
-  Conf.create_full 
-    ~cli:"--bts-query"
-    bool_of_string
-    "bool Query the BTS for ITP (true/false)."
-    (Conf.Value true)
-
-let distribution =
-  Conf.create
-    ~cli:"--distribution"
-    "str Distribution for the package."
-    Conf.ShortInput
-
 let dh_compat = "7"
 
 let run ~ctxt args = 
@@ -76,42 +57,8 @@ let run ~ctxt args =
       (output_content "3.0 (quilt)")
   in
 
-  (* Create debian/changelog *)
   let () = 
-    let pkg_version = 
-      OASISVersion.string_of_version t.pkg.version
-    in
-
-    if debian_not_exist "changelog" then
-      begin
-        let opts =
-          ""
-        in
-        let opts = 
-          if Conf.is_set itp then
-            opts^" --closes "^(Conf.get ~ctxt itp)
-          else
-            opts^" 'Initial release.'"
-        in
-        let opts =
-          if Conf.get ~ctxt bts_query then
-            opts
-          else
-            opts^" --no-query"
-        in
-        let opts =
-          if Conf.is_set distribution then
-            opts^" --distribution "^(Conf.get ~ctxt distribution)
-          else 
-            opts
-        in
-          assert_command ~ctxt  
-            (interpolate 
-               "dch --create --package $t.deb_name --newversion $pkg_version-1 $opts")
-      end
-  in
-
-  let () = 
+    Changelog.create ~ctxt t;
     Control.create ~ctxt t;
     Copyright.create ~ctxt t;
     Rules.create t;

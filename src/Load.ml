@@ -105,18 +105,22 @@ let load ~ctxt args =
   in
 
   let () = 
-    Arg.parse_argv
-      ~current:(ref 0)
-      args
-      (Arg.align !Conf.all_args)
-      (fun s -> 
-         failwith 
-           (Printf.sprintf
-              "Don't know what to do with '%s'"
-              s))
-      (Printf.sprintf 
-         "oasis2debian v%s by Sylvain Le Gall"
-         Version.ver)
+    try 
+      Arg.parse_argv
+        ~current:(ref 0)
+        args
+        (Arg.align !Conf.all_args)
+        (fun s -> 
+           failwith 
+             (Printf.sprintf
+                "Don't know what to do with '%s'"
+                s))
+        (Printf.sprintf 
+           "oasis2debian v%s by Sylvain Le Gall"
+           Version.ver)
+    with Arg.Help str ->
+      print_endline str;
+      raise (ExitCode 0)
   in
 
   let t = 

@@ -18,7 +18,8 @@ Executable oasis2debian
                 pcre, 
                 debian-formats (>= 0.0.1), 
                 xdg-basedir (>= 0.0.1), 
-                inifiles (>= 1.2)
+                inifiles (>= 1.2),
+                calendar 
   
 Executable test
   Path:         test
