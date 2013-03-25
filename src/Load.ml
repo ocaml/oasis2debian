@@ -31,19 +31,19 @@ open FileUtil
 let description = 
   Conf.create 
     ~cli:"--description"
-    "Long description of the package"
+    "str Long description of the package"
     Conf.LongInput
 
 let homepage =
   Conf.create 
     ~cli:"--homepage"
-    "Homepage of the package"
+    "url Homepage of the package"
     Conf.ShortInput
 
 let uploader =
   Conf.create 
     ~cli:"--uploader"
-    "Uploader of the package"
+    "email Uploader of the package"
     (Conf.Fun
        (fun () ->
           try 
@@ -59,7 +59,7 @@ let uploader =
 let deb_name =
   Conf.create 
     ~cli:"--debian-name"
-    "Source package name in Debian (e.g. extunix becomes ocaml-extunix)"
+    "str Source package name in Debian (e.g. extunix becomes ocaml-extunix)"
     Conf.ShortInput
 
 

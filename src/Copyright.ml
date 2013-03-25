@@ -27,7 +27,7 @@ open Common
 let copyrights = 
   Conf.create 
     ~cli:"--copyrights"
-    "Copyright holds of the package"
+    "str Copyright holders of the package."
     Conf.ShortInput
 
 let todo ~ctxt msg = 

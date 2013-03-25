@@ -28,7 +28,7 @@ open Common
 let library_name = 
   Conf.create 
     ~cli:"--library-name"
-    "Short name of the library (XXX in libXXX-ocaml-dev)"
+    "pkg_name Short name of the library (XXX in libXXX-ocaml-dev)."
     (Conf.Fun
        (fun () ->
           failwith "Not set"))
@@ -36,7 +36,7 @@ let library_name =
 let executable_name = 
   Conf.create 
     ~cli:"--executable-name"
-    "Full name of the package that contains executables"
+    "pkg_name Full name of the package that contains executables."
     (Conf.Fun
        (fun () ->
           failwith "Not set"))
