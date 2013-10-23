@@ -8,19 +8,25 @@ Plugins:     DevFiles (0.2), META (0.2), StdFiles (0.2)
 Homepage:    http://oasis.forge.ocamlcore.org/oasis2debian
 BuildTools:  ocamlbuild
 FilesAB:     src/Version.ml.ab
+Description:
+  This program is a helper to translate _oasis file into a debian/ directory
+  that is suitable to create a Debian package.
+  .
+  When the _oasis file is lacking some information, a prompt is displayed to
+  gather more data.
 
 Executable oasis2debian
   Path:         src
   MainIs:       Main.ml
-  BuildDepends: oasis (>= 0.3.1), oasis.base, 
-                xstrp4 (>= 1.8), 
-                fileutils (>= 0.4.2), 
-                pcre, 
-                debian-formats (>= 0.0.1), 
-                xdg-basedir (>= 0.0.1), 
+  BuildDepends: oasis (>= 0.3.1), oasis.base,
+                xstrp4 (>= 1.8),
+                fileutils (>= 0.4.2),
+                pcre,
+                debian-formats (>= 0.0.1),
+                xdg-basedir (>= 0.0.1),
                 inifiles (>= 1.2),
-                calendar 
-  
+                calendar
+
 Executable test
   Path:         test
   MainIs:       test.ml
@@ -28,5 +34,5 @@ Executable test
   BuildDepends: oUnit (>= 2.0.0), fileutils (>= 0.4.2), unix, oasis
 
 Test main
-  Command: $test -exec $oasis2debian
+  Command: $test -oasis2debian $oasis2debian
   TestTools: oasis2debian, test, tar, ocamlmod

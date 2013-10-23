@@ -23,8 +23,10 @@ open OUnit2
 open FileUtil
 open FilePath
 
-let oasis2debian =
-  ref "_build/src/oasis2debian"
+let oasis2debian = Conf.make_exec "oasis2debian"
+let tar = Conf.make_exec "tar"
+let debuild = Conf.make_exec "debuild"
+let lintian = Conf.make_exec "lintian"
 
 let args_for_tarball =
   ["ocamlify-0.0.1.tar.gz", 
@@ -51,58 +53,50 @@ let tests =
       (Has_extension "gz")
       (ls (make_filename [pwd; "test"; "data"]))
   in
-  let topdir tarball =
-    chop_extension (chop_extension (basename tarball))
-  in
     List.map 
       (fun tarball ->
          (basename tarball) >::
-         (fun ctxt ->
-           bracket_tmpdir
-             (fun dn ->
-                bracket
-                  (fun () -> Sys.chdir dn)
-                  (fun () ->
-                     let () = 
-                       assert_command ~ctxt "tar" ["xzf"; tarball];
-                     in
-                     let pkg =
-                       OASISParse.from_file 
-                         ~ctxt:{!OASISContext.default with 
-                                    OASISContext.ignore_plugins = true}
-                         (Filename.concat (topdir tarball) "_oasis")
-                     in
-                     let pkg_name = pkg.OASISTypes.name in
-                     let pkg_ver = OASISVersion.string_of_version pkg.OASISTypes.version in
-                     let () = 
-                       cp [tarball] 
-                         (Filename.concat 
-                            dn 
-                            (Printf.sprintf "%s_%s.orig.tar.gz" pkg_name pkg_ver));
-                       Sys.rename (topdir tarball) pkg_name;
-                       Sys.chdir pkg_name;
-                     in
-                     let args = 
-                       try 
-                         List.assoc (basename tarball) args_for_tarball
-                       with Not_found ->
-                         []
-                     in
-                       assert_command ~ctxt !oasis2debian ("init" :: args);
-                       assert_command ~ctxt "debuild" ["-uc"; "-us"];
-                       Sys.chdir "..";
-                       assert_command ~ctxt "lintian" ("--fail-on-warnings" :: (filter (Has_extension "changes") (ls ".")))
-                  )
-                  (fun () -> Sys.chdir pwd)
-                  ())
-             ()))
+         (fun test_ctxt ->
+            let dn = bracket_tmpdir test_ctxt in
+            let topdir =
+              Filename.concat dn
+                (chop_extension (chop_extension (basename tarball)))
+            in
+            let () = 
+              assert_command ~chdir:dn ~ctxt:test_ctxt
+                (tar test_ctxt) ["xzf"; tarball];
+            in
+            let pkg =
+              OASISParse.from_file 
+                ~ctxt:{!OASISContext.default with 
+                           OASISContext.ignore_plugins = true}
+                (Filename.concat topdir "_oasis")
+            in
+            let pkg_name = pkg.OASISTypes.name in
+            let pkg_ver = OASISVersion.string_of_version pkg.OASISTypes.version in
+            let pkg_dir = Filename.concat dn pkg_name in
+            let () = 
+              cp [tarball] 
+                (Filename.concat 
+                   dn 
+                   (Printf.sprintf "%s_%s.orig.tar.gz" pkg_name pkg_ver));
+              Sys.rename topdir pkg_dir;
+            in
+            let args = 
+              try 
+                List.assoc (basename tarball) args_for_tarball
+              with Not_found ->
+                []
+            in
+              assert_command ~ctxt:test_ctxt ~chdir:pkg_dir
+                (oasis2debian test_ctxt) ("init" :: args);
+              assert_command ~ctxt:test_ctxt ~chdir:pkg_dir
+                (debuild test_ctxt) ["-uc"; "-us"];
+              assert_command ~ctxt:test_ctxt ~chdir:dn
+                (lintian test_ctxt)
+                ("--fail-on-warnings" :: (filter (Has_extension "changes") (ls ".")))))
       tarballs
-      
 
 let () =
   Unix.putenv "EDITOR" "true";
-  run_test_tt_main
-    ~arg_specs:["-exec",
-                Arg.Set_string oasis2debian,
-                "prg oasis2debian program to test"]
-    ("oasis2debian" >::: tests)
+  run_test_tt_main ("oasis2debian" >::: tests)

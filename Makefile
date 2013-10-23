@@ -19,12 +19,7 @@
 #  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               #
 ################################################################################
 
-OCAMLRUNPARAM=b
-export OCAMLRUNPARAM
-
-#TESTFLAGS=-verbose
 default: test reinstall
-#default: reinstall
 reinstall: build
 
 # OASIS_START
@@ -65,12 +60,3 @@ setup.data:
 .PHONY: build doc test all install uninstall reinstall clean distclean configure
 
 # OASIS_STOP
-
-headache:
-	find ./ \
-		-name .git -prune -false -o \
-		-name _build -prune -false -o \
-	  -type f \
-	  | xargs headache -h _header -c _headache.config
-
-.PHONY: build-backup test-backup clean-backup wc headache
