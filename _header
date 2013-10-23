@@ -1,6 +1,6 @@
-oasis2debian: create and maintain a debian/ directory using _oasis
+oasis2debian: Create and maintain Debian package for an OASIS package
 
-Copyright (C) 2010, OCamlCore SARL, http://www.ocamlcore.com
+Copyright (C) 2013, Sylvain Le Gall
 
 This library is free software; you can redistribute it and/or modify it
 under the terms of the GNU Lesser General Public License as published by
