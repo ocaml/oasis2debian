@@ -19,29 +19,29 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-(** Compute package to generate 
+(** Compute package to generate
   *)
 
 open OASISTypes
 open Common
 
-let library_name = 
-  Conf.create 
+let library_name =
+  Conf.create
     ~cli:"--library-name"
     "pkg_name Short name of the library (XXX in libXXX-ocaml-dev)."
     (Conf.Fun
        (fun () ->
           failwith "Not set"))
 
-let executable_name = 
-  Conf.create 
+let executable_name =
+  Conf.create
     ~cli:"--executable-name"
     "pkg_name Full name of the package that contains executables."
     (Conf.Fun
        (fun () ->
           failwith "Not set"))
 
-let set ~ctxt t = 
+let set ~ctxt t =
 
   let obj, lib, doc, bin =
     List.fold_left
@@ -65,16 +65,16 @@ let set ~ctxt t =
       t.pkg_generic.sections
   in
 
-  let arch lst = 
-    let is_all = 
+  let arch lst =
+    let is_all =
       List.for_all
         (function
            |  {bs_compiled_object = Byte} ->
                true
 
-           | _ -> 
+           | _ ->
                false)
-        (List.rev_map 
+        (List.rev_map
            (fun (_, bs, _) -> bs)
            lst)
     in
@@ -84,29 +84,29 @@ let set ~ctxt t =
         "any"
   in
 
-  let mk_deb nm lst = 
+  let mk_deb nm lst =
     {name = nm; arch = arch lst}
   in
 
-  let base_name = 
+  let base_name =
     if Conf.is_set library_name then
       begin
-        Conf.get ~ctxt library_name 
+        Conf.get ~ctxt library_name
       end
     else
       begin
         let groups, _, _ = OASISFindlib.findlib_mapping t.pkg_generic in
-        match groups with 
+        match groups with
           | [hd] ->
               (* First method: if there is a single findlib library use its name
                *)
               OASISFindlib.findlib_of_group hd
 
           | _ ->
-              (* Default method: try to guess the target name using source name 
+              (* Default method: try to guess the target name using source name
                *)
               List.fold_left
-                (fun name pat -> 
+                (fun name pat ->
                    Pcre.replace ~pat ~templ:"" name)
 
                 (* Start with the package name *)
@@ -115,16 +115,16 @@ let set ~ctxt t =
       end
   in
 
-  let spf fmt = 
+  let spf fmt =
     Printf.sprintf fmt
   in
 
-  let add_doc nm t = 
+  let add_doc nm t =
     (* Add doc package, only if more than one documentation
      * shipped.
      *)
     if List.length doc > 1 then
-      {t with 
+      {t with
            deb_doc = Some (mk_deb nm [])}
     else
       t
@@ -136,23 +136,23 @@ let set ~ctxt t =
       | [], [], bin ->
           begin
             (* Only a binary package, name = source name *)
-            let exec_name = 
-              if Conf.is_set executable_name then 
-                Conf.get ~ctxt executable_name 
+            let exec_name =
+              if Conf.is_set executable_name then
+                Conf.get ~ctxt executable_name
               else
                 t.deb_name
             in
-              add_doc 
+              add_doc
                 (base_name^"-doc")
-                {t with deb_exec = Some (mk_deb exec_name bin)} 
+                {t with deb_exec = Some (mk_deb exec_name bin)}
           end
 
       | lib, obj, bin ->
-          begin 
+          begin
             (* Library only *)
-            let t  = 
-              {t with 
-                   deb_dev = 
+            let t =
+              {t with
+                   deb_dev =
                      Some (mk_deb (spf "lib%s-ocaml-dev" base_name) lib,
                            mk_deb (spf "lib%s-ocaml" base_name) lib)}
             in
@@ -160,7 +160,7 @@ let set ~ctxt t =
             (* Also executables ? *)
             let t =
               if bin <> [] then
-                let exec_name = 
+                let exec_name =
                   if Conf.is_set executable_name then
                     Conf.get ~ctxt executable_name
                   else
@@ -171,7 +171,7 @@ let set ~ctxt t =
                 t
             in
 
-              add_doc 
+              add_doc
                 (spf "lib%s-ocaml-doc" base_name)
                 t
           end

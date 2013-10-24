@@ -23,25 +23,25 @@
 open OASISMessage
 open Common
 
-let () = 
-  let () = 
+let () =
+  let () =
     (* Clean ENV *)
     Unix.putenv "OCAMLPATH" "";
     Unix.putenv "LC_ALL" "C"
   in
 
-  let ctxt = 
-    {(!OASISContext.default) with 
+  let ctxt =
+    {(!OASISContext.default) with
          OASISContext.ignore_plugins = true}
   in
     try
       if Array.length Sys.argv >= 2 then
         begin
-          let args = 
+          let args =
             Array.sub Sys.argv 1 ((Array.length Sys.argv) - 1)
           in
           let run =
-            match Sys.argv.(1) with 
+            match Sys.argv.(1) with
               | "init" ->
                   ActInit.run
               | "get" ->
@@ -63,7 +63,7 @@ let () =
           error ~ctxt "Not enough arguments";
           exit 2
         end
-    with 
+    with
       | Failure str ->
           error ~ctxt "%s" str;
           exit 1

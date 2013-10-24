@@ -28,26 +28,26 @@ open OASISTypes
 open Common
 open FileUtil
 
-let description = 
-  Conf.create 
+let description =
+  Conf.create
     ~cli:"--description"
     "str Long description of the package"
     Conf.LongInput
 
 let homepage =
-  Conf.create 
+  Conf.create
     ~cli:"--homepage"
     "url Homepage of the package"
     Conf.ShortInput
 
 let uploader =
-  Conf.create 
+  Conf.create
     ~cli:"--uploader"
     "email Uploader of the package"
     (Conf.Fun
        (fun () ->
-          try 
-            Printf.sprintf 
+          try
+            Printf.sprintf
               "%s <%s>"
               (Sys.getenv "DEBFULLNAME")
               (Sys.getenv "DEBEMAIL")
@@ -57,21 +57,21 @@ let uploader =
                       DEBEMAIL or use --uploader"))
 
 let deb_name =
-  Conf.create 
+  Conf.create
     ~cli:"--debian-name"
     "str Source package name in Debian (e.g. extunix becomes ocaml-extunix)"
     Conf.ShortInput
 
 
-let load ~ctxt args = 
+let load ~ctxt args =
 
-  let pkg = 
+  let pkg =
     OASISParse.from_file
       ~ctxt
       "_oasis"
   in
-                 
-  let expr = 
+
+  let expr =
     Expr.create ~ctxt pkg
   in
 
@@ -80,42 +80,42 @@ let load ~ctxt args =
   in
 
   let dflt r x =
-    match x, Conf.is_set r with 
-      | Some e, false -> 
+    match x, Conf.is_set r with
+      | Some e, false ->
           Conf.set r e
       | _ ->
           ()
   in
 
-  let () = 
+  let () =
     dflt description pkg.OASISTypes.description;
     dflt homepage    pkg.OASISTypes.homepage
   in
 
-  let () = 
+  let () =
     let cur_dn = FilePath.basename (pwd ()) in
     let pkg_nm = pkg.OASISTypes.name in
       if pkg_nm = cur_dn then
         Conf.set deb_name cur_dn
       else
-        warning ~ctxt 
+        warning ~ctxt
           "OASIS name (%s) and directory name (%s) are not the same, \
            cannot set Debian name"
           pkg_nm cur_dn
   in
 
-  let () = 
-    try 
+  let () =
+    try
       Arg.parse_argv
         ~current:(ref 0)
         args
         (Arg.align !Conf.all_args)
-        (fun s -> 
-           failwith 
+        (fun s ->
+           failwith
              (Printf.sprintf
                 "Don't know what to do with '%s'"
                 s))
-        (Printf.sprintf 
+        (Printf.sprintf
            "oasis2debian v%s by Sylvain Le Gall"
            Version.ver)
     with Arg.Help str ->
@@ -123,7 +123,7 @@ let load ~ctxt args =
       raise (ExitCode 0)
   in
 
-  let t = 
+  let t =
     {
       build_depends = BuildDepends.get ~ctxt pkg [];
       description   = Conf.get ~ctxt description;
@@ -139,7 +139,7 @@ let load ~ctxt args =
     }
   in
 
-  let t = 
+  let t =
     (* Fix package generated *)
     GenPkg.set ~ctxt t
   in

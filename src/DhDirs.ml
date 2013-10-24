@@ -1,15 +1,15 @@
 
 open Common
 
-let dirs = 
+let dirs =
   let lst = ref [] in
     Conf.create_full
       ~cli:"--dh-dirs"
       (fun s ->
-         Scanf.sscanf 
+         Scanf.sscanf
            s "%s@,%s"
            (fun pkg fn ->
-              let lst' = 
+              let lst' =
                 (pkg, fn) :: !lst
               in
                 lst := lst';

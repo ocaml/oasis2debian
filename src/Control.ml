@@ -23,19 +23,19 @@ open OASISTypes
 open Common
 open ExtString
 
-let create ~ctxt t = 
-  let sep = 
+let create ~ctxt t =
+  let sep =
     ",\n  "
   in
 
   let build_depends =
-    String.concat sep 
-      (List.map 
+    String.concat sep
+      (List.map
          BuildDepends.to_string
          t.build_depends)
   in
 
-  let src_name = 
+  let src_name =
     t.deb_name
   in
 
@@ -46,16 +46,16 @@ let create ~ctxt t =
       ""
   in
 
-  let description = 
-    let lst = 
-      List.map 
+  let description =
+    let lst =
+      List.map
         (fun str ->
            match String.strip str with
              | "" -> "."
              | str -> str)
         (String.nsplit t.description "\n")
     in
-    let res = 
+    let res =
       String.concat "\n " lst
     in
       if res = "" then
@@ -70,43 +70,44 @@ let create ~ctxt t =
            output_content x chn
          in
 
-         let output_intro ?(suggest_doc=true) deb_pkg = 
-           output_content 
+         let output_intro ?(suggest_doc=true) deb_pkg =
+           output_content
              (interpolate "
 Package: $deb_pkg.name
 Architecture: $deb_pkg.arch");
            begin
-             match suggest_doc, t.deb_doc with 
+             match suggest_doc, t.deb_doc with
                | true, Some {name = nm} ->
-                   output_content 
+                   output_content
                      (interpolate "\
 Suggests: $nm")
-               | _ -> 
+               | _ ->
                    ()
            end
          in
 
            (* Intro: the source package *)
-           output_content 
+           output_content
              (interpolate "\
 Source: $src_name
 Section: ocaml
 Priority: optional
 Maintainer: Debian OCaml Maintainers <debian-ocaml-maint@lists.debian.org>
-Uploaders: 
+Uploaders:
   $t.uploader
 Build-Depends:
   $build_depends
 Standards-Version: 3.9.1
 Homepage: $t.homepage
 Vcs-Git: git://git.debian.org/git/pkg-ocaml-maint/packages/${src_name}.git
-Vcs-Browser: http://git.debian.org/?p=pkg-ocaml-maint/packages/${src_name}.git");
+Vcs-Browser:
+  http://git.debian.org/?p=pkg-ocaml-maint/packages/${src_name}.git");
 
            begin
-             match t.deb_exec with 
+             match t.deb_exec with
                | Some deb_pkg ->
                    output_intro deb_pkg;
-                   output_content 
+                   output_content
                      (interpolate "\
 Depends: $exec_depends\${misc:Depends}, \${ocaml:Depends}
 Description: $t.pkg.synopsis
@@ -116,12 +117,12 @@ Description: $t.pkg.synopsis
  .
  This package contains command-line tools."
 
-               | None -> 
+               | None ->
                    ()
            end;
 
            begin
-             match t.deb_dev with 
+             match t.deb_dev with
                | Some (deb_dev, deb_runtime) ->
                    output_intro deb_dev;
                    output_content
@@ -147,7 +148,7 @@ Description: $t.pkg.synopsis
            end;
 
            begin
-             match t.deb_doc with 
+             match t.deb_doc with
                | Some deb_pkg ->
                    output_intro deb_pkg;
                    output_content

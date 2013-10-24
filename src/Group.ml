@@ -1,7 +1,7 @@
 
 open Common
 
-let group = 
+let group =
   Conf.create_full
     ~cli:"--group"
     (fun s ->
@@ -12,8 +12,8 @@ let group =
     "group,homedir Create a group for the executable package (postinst/prerm)."
     (Conf.Value None)
 
-let create ~ctxt t = 
-  match Conf.get ~ctxt group, t.deb_exec with 
+let create ~ctxt t =
+  match Conf.get ~ctxt group, t.deb_exec with
     | Some (group, homedir), Some {name = exec_name} ->
         let snippet_name = Printf.sprintf "group(%s)" group in
           DhFiles.dh_dirs

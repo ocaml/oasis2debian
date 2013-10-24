@@ -19,7 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-(** Init action 
+(** Init action
   *)
 
 open OASISTypes
@@ -29,20 +29,20 @@ open Common
 
 let dh_compat = "7"
 
-let run ~ctxt args = 
+let run ~ctxt args =
 
-  let t = 
+  let t =
     Load.load ~ctxt args
   in
 
   (* Create debian/ and debian/compat *)
-  let () = 
+  let () =
     debian_with_fn "compat"
       (fun chn -> output_string chn (dh_compat^"\n"))
   in
 
   (* Create debian/gbp.conf *)
-  let () = 
+  let () =
     debian_with_fn "gbp.conf"
       (fun chn ->
          output_string chn
@@ -52,12 +52,12 @@ let run ~ctxt args =
   in
 
   (* Create debian/source *)
-  let () = 
+  let () =
     debian_with_fn "source/format"
       (output_content "3.0 (quilt)")
   in
 
-  let () = 
+  let () =
     Changelog.create ~ctxt t;
     Control.create ~ctxt t;
     Copyright.create ~ctxt t;
@@ -67,5 +67,5 @@ let run ~ctxt args =
     DpkgStatOverride.create ~ctxt t;
     DhDirs.create ~ctxt t;
     LintianOverrides.create ~ctxt t;
-  in 
+  in
     ()

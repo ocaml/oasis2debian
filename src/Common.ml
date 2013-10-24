@@ -33,7 +33,9 @@ type deb_pkg =
     }
 
 type build_depend =
-    string * OASISVersion.comparator option * [ `All | `Only of Arch.t * Arch.t list ]
+    string *
+    OASISVersion.comparator option *
+    [ `All | `Only of Arch.t * Arch.t list ]
 
 type t =
   {
@@ -50,7 +52,7 @@ type t =
         A section is removed if it is not installed
         or built on all arches
       *)
-    pkg_generic:   OASISTypes.package; 
+    pkg_generic:   OASISTypes.package;
 
     (** Evaluation environment for OASISExpr *)
     expr:          Expr.t;
@@ -67,7 +69,7 @@ type t =
 
 (** [debian_fn fn] Filename [fn] inside 'debian/'
   *)
-let debian_fn = 
+let debian_fn =
   FilePath.concat "debian"
 
 (** Test if the filename exist in "debian/"
@@ -77,14 +79,14 @@ let debian_not_exist fn =
 
 (** Execute [f] on a file inside debian/, in append mode. *)
 let debian_with_append_fn fn f =
-  let real_fn = 
-    debian_fn fn 
+  let real_fn =
+    debian_fn fn
   in
-  let () = 
+  let () =
     mkdir ~parent:true (FilePath.dirname real_fn)
   in
-  let chn = 
-    open_out_gen 
+  let chn =
+    open_out_gen
       [Open_wronly; Open_append; Open_creat; Open_text]
       0o666
       real_fn
@@ -92,33 +94,33 @@ let debian_with_append_fn fn f =
     f chn;
     close_out chn
 
-(** Only execute [f] if the file doesn't exist 
+(** Only execute [f] if the file doesn't exist
   *)
-let debian_with_fn fn f = 
+let debian_with_fn fn f =
   if debian_not_exist fn then
     debian_with_append_fn fn f
 
 (** Run a command and file if exit code is non-zero
   *)
-let assert_command ~ctxt cmd = 
+let assert_command ~ctxt cmd =
   info ~ctxt "Running command '%s'" cmd;
-  match Sys.command cmd with 
+  match Sys.command cmd with
     | 0 -> ()
-    | n -> 
+    | n ->
         failwithf
-          "Command '%s' exited with code %d" 
+          "Command '%s' exited with code %d"
           cmd n
 
 
-let assert_command_output ~ctxt cmd = 
-  let chn = 
+let assert_command_output ~ctxt cmd =
+  let chn =
     info ~ctxt "Running command '%s'" cmd;
     Unix.open_process_in cmd
   in
-  let rec read_chn () = 
-    try 
-      let ln = 
-        input_line chn 
+  let rec read_chn () =
+    try
+      let ln =
+        input_line chn
       in
         ln :: read_chn ()
     with End_of_file ->
@@ -127,7 +129,7 @@ let assert_command_output ~ctxt cmd =
   let res =
     read_chn ()
   in
-    match Unix.close_process_in chn with 
+    match Unix.close_process_in chn with
       | Unix.WEXITED 0 ->
           res
       | _ ->
@@ -135,14 +137,14 @@ let assert_command_output ~ctxt cmd =
             "Command '%s' exited with non-zero exit code"
             cmd
 
-let output_content str chn = 
+let output_content str chn =
   output_string chn (str^"\n")
 
 let lines_of_file fn =
   let chn = open_in fn in
   let lst = ref [] in
   let () =
-    try 
+    try
       while true do
         lst := (input_line chn) :: !lst
       done;
@@ -159,14 +161,14 @@ let file_of_lines fn lst =
 
 module MapString = Map.Make(String)
 
-let docdir t = 
-  let has_doc = 
-    List.exists 
-      (function Doc _ -> true | _ -> false) 
+let docdir t =
+  let has_doc =
+    List.exists
+      (function Doc _ -> true | _ -> false)
       t.pkg.sections
   in
-    match has_doc, t.deb_doc, t.deb_dev with 
-      | true, Some deb_pkg, _ 
+    match has_doc, t.deb_doc, t.deb_dev with
+      | true, Some deb_pkg, _
       | true, None, Some (deb_pkg, _) ->
           Some ("/usr/share/doc/"^deb_pkg.name)
 

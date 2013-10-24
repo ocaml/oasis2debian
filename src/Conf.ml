@@ -19,9 +19,9 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-type 'a t = 
+type 'a t =
   | Value of 'a
-  | LongInput 
+  | LongInput
   | ShortInput
   | Fun of (unit -> 'a)
 
@@ -32,36 +32,36 @@ type 'a rcrd =
       help: string;
     }
 
-let all_args : ((string * Arg.spec * string) list) ref = 
+let all_args : ((string * Arg.spec * string) list) ref =
   ref []
 
-let set r x = 
+let set r x =
   r.value <- Value x
 
 let is_set r =
-  match r.value with 
+  match r.value with
     | Value _ -> true
     | _ -> false
 
-let rec get ~ctxt r = 
-  match r.value with 
+let rec get ~ctxt r =
+  match r.value with
     | Fun f ->
-        set r (f ()); 
+        set r (f ());
         get ~ctxt r
 
     | LongInput ->
         set r (r.parse (Input.long ~ctxt "" r.help));
         get ~ctxt r
 
-    | ShortInput -> 
+    | ShortInput ->
         set r (r.parse (Input.short ~ctxt (r.help^": ")));
         get ~ctxt r
 
     | Value x ->
         x
 
-let create_full ?cli parse help t = 
-  let res = 
+let create_full ?cli parse help t =
+  let res =
     {
       value = t;
       parse = parse;
@@ -69,9 +69,9 @@ let create_full ?cli parse help t =
     }
   in
     begin
-      match cli with 
-        | Some cli -> 
-            all_args := 
+      match cli with
+        | Some cli ->
+            all_args :=
             (cli,
              Arg.String (fun s -> set res (parse s)),
              help)
@@ -80,5 +80,5 @@ let create_full ?cli parse help t =
     end;
     res
 
-let create ?cli help t = 
+let create ?cli help t =
   create_full ?cli (fun s -> s) help t

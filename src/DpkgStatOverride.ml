@@ -9,15 +9,15 @@ type t =
       acl: string;
     }
 
-let dpkg_statoverride = 
+let dpkg_statoverride =
   let lst = ref [] in
     Conf.create_full
       ~cli:"--dpkg-statoverride"
       (fun s ->
-         Scanf.sscanf 
+         Scanf.sscanf
            s "%s@,%s@,%s@,%s"
            (fun fn owner group acl ->
-              let lst' = 
+              let lst' =
                 {fn = fn; owner = owner; group = group; acl = acl}
                 :: !lst
               in
@@ -27,7 +27,7 @@ let dpkg_statoverride =
       (Conf.Value !lst)
 
 let create ~ctxt t =
-  match Conf.get ~ctxt dpkg_statoverride, t.deb_exec with 
+  match Conf.get ~ctxt dpkg_statoverride, t.deb_exec with
     | _ :: _, None ->
         failwith "--dpkg-statoverride called without an executable package."
     | [], None ->

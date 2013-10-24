@@ -24,17 +24,17 @@ open OASISLicense
 open OASISMessage
 open Common
 
-let copyrights = 
-  Conf.create 
+let copyrights =
+  Conf.create
     ~cli:"--copyrights"
     "str Copyright holders of the package."
     Conf.ShortInput
 
-let todo ~ctxt msg = 
+let todo ~ctxt msg =
   OASISMessage.warning ~ctxt "%s" msg;
   "TODO"
 
-let license_exception ~ctxt exc = 
+let license_exception ~ctxt exc =
   if exc = ocaml_linking_exception then
    " \
  As a special exception to the GNU Library General Public License, you may
@@ -51,36 +51,36 @@ let license_exception ~ctxt exc =
  Public License."
 
  else
-    " "^(todo ~ctxt 
-           (Printf.sprintf 
+    " "^(todo ~ctxt
+           (Printf.sprintf
               "License exception '%s' not defined"
               (string_of_license_exception exc)))
 
-let license_full ~ctxt t = 
-  let see_common = 
+let license_full ~ctxt t =
+  let see_common =
     Printf.sprintf "See '/usr/share/common-licenses/%s' for full text."
   in
   let min_ver =
     function
-      | Version x | VersionOrLater x -> 
+      | Version x | VersionOrLater x ->
           Some (OASISVersion.string_of_version x)
-      | NoVersion -> 
+      | NoVersion ->
           None
   in
-  let todo () = 
-    todo ~ctxt 
-      (Printf.sprintf 
+  let todo () =
+    todo ~ctxt
+      (Printf.sprintf
          "License '%s' not defined"
-         (OASISLicense.to_string 
+         (OASISLicense.to_string
             t.pkg.OASISTypes.license))
   in
-  let debian_licenses = 
+  let debian_licenses =
     [
-      apache, 
+      apache,
       [`Ver "2.0", "Aparche-2.0"];
-      artistic, 
+      artistic,
       [`Any, "Artistic"];
-      bsd3, 
+      bsd3,
       [`Any, "BSD"];
       gpl,
       [`Ver "1", "GPL-1";
@@ -98,19 +98,19 @@ let license_full ~ctxt t =
        `None, "LGPL"]
     ]
   in
-    match t.pkg.OASISTypes.license with 
+    match t.pkg.OASISTypes.license with
       | DEP5License l ->
           begin
-            let process_one l = 
+            let process_one l =
               try
                 begin
                   let vers = List.assoc l.license debian_licenses in
-                    try 
+                    try
                       let ver = min_ver l.version in
-                      let _, debian_common = 
+                      let _, debian_common =
                         List.find
                           (fun (ver', _) ->
-                             match ver, ver' with 
+                             match ver, ver' with
                                | Some v, `Ver v' -> v = v'
                                | None, `None | _, `Any -> true
                                | None, `Ver _ | Some _, `None -> false)
@@ -122,18 +122,18 @@ let license_full ~ctxt t =
                 end
               with Not_found ->
                 begin
-                  match t.pkg.OASISTypes.license_file with 
+                  match t.pkg.OASISTypes.license_file with
                     | Some fn when Sys.file_exists fn ->
                         begin
-                          let chn = 
+                          let chn =
                             open_in fn
                           in
                           let lst =
                             ref []
                           in
-                          let () = 
-                            try 
-                              while true do 
+                          let () =
+                            try
+                              while true do
                                 lst := input_line chn :: !lst
                               done
                             with End_of_file ->
@@ -160,40 +160,40 @@ let license_full ~ctxt t =
           todo ()
 
 
-let create ~ctxt t = 
-  let copyrights = 
-    if Conf.is_set copyrights then 
-      Conf.get ~ctxt copyrights 
+let create ~ctxt t =
+  let copyrights =
+    if Conf.is_set copyrights then
+      Conf.get ~ctxt copyrights
     else
       begin
         let sep = "\n           "
         in
-        match t.pkg.copyrights with 
-          | [] -> 
+        match t.pkg.copyrights with
+          | [] ->
               todo ~ctxt "No copyrights defined"
-          | lst -> 
+          | lst ->
               String.concat sep lst
       end
   in
 
-  let license = 
+  let license =
     OASISLicense.to_string t.pkg.OASISTypes.license
   in
 
-  let license_full = 
+  let license_full =
     license_full ~ctxt t
   in
 
   let license_exception =
-    match t.pkg.OASISTypes.license with 
+    match t.pkg.OASISTypes.license with
       | DEP5License l ->
-          let lst = 
+          let lst =
             let rec collect_excpt acc =
-              function 
+              function
                 | DEP5Unit {excption = Some e} ->
                     if not (List.mem e acc) then
                       e :: acc
-                    else 
+                    else
                       acc
                 | DEP5Unit _ ->
                     acc
@@ -202,12 +202,12 @@ let create ~ctxt t =
             in
               collect_excpt [] l
           in
-          let sep  = 
+          let sep =
             "\n\n"
           in
             if lst <> [] then
               sep ^ (String.concat sep (List.map (license_exception ~ctxt) lst))
-            else 
+            else
               ""
 
       | _ ->
@@ -220,12 +220,13 @@ let create ~ctxt t =
 
     debian_with_fn "copyright"
       (fun chn ->
-         let output_content x = 
-           output_content x chn 
+         let output_content x =
+           output_content x chn
          in
-           output_content 
+           output_content
              (interpolate "\
-Format-Specification: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=135
+Format-Specification: \
+  http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=135
 Name: $t.deb_name
 Maintainer: $t.uploader
 

@@ -27,7 +27,7 @@ open OASISFindlib
 open ExtString
 open Common
 
-type t = 
+type t =
   {
     findlib_name: string;
     has_byte:     bool;
@@ -37,23 +37,23 @@ type t =
     has_cmxs:     bool;
   }
 
-let create ~ctxt t = 
-  let dh_with_fn deb_pkg ext = 
+let create ~ctxt t =
+  let dh_with_fn deb_pkg ext =
     debian_with_fn (deb_pkg.name^"."^ext)
   in
 
-  let findlib_roots, _, _ = 
-    OASISFindlib.findlib_mapping t.pkg_generic 
+  let findlib_roots, _, _ =
+    OASISFindlib.findlib_mapping t.pkg_generic
   in
 
-  let roots = 
-    List.rev_map 
+  let roots =
+    List.rev_map
       (fun grp ->
-         let findlib_name = 
-           OASISFindlib.findlib_of_group grp 
+         let findlib_name =
+           OASISFindlib.findlib_of_group grp
          in
 
-         let libs = 
+         let libs =
            let rec fold acc =
              function
                | Container (_, lst) ->
@@ -67,20 +67,20 @@ let create ~ctxt t =
          (* We compute the set of possible generated files to test
           * them for certain properties.
           *)
-         let generated_files = 
+         let generated_files =
            List.flatten
-             (List.flatten 
+             (List.flatten
                 (List.fold_left
-                  (fun acc -> 
+                  (fun acc ->
                      function
                        | cs, bs, `Library lib ->
-                           let fns = 
+                           let fns =
                              OASISLibrary.generated_unix_files
                                ~ctxt
                                ~source_file_exists:Sys.file_exists
                                ~is_native:true
                                ~has_native_dynlink:
-                               (bool_of_string 
+                               (bool_of_string
                                   (BaseStandardVar.native_dynlink ()))
                                ~ext_lib:".a"
                                ~ext_dll:".so"
@@ -88,23 +88,23 @@ let create ~ctxt t =
                            in
                              fns :: acc
                        | cs, bs, `Object obj ->
-                           let fns = 
+                           let fns =
                              OASISObject.generated_unix_files
-                               ~ctxt 
+                               ~ctxt
                                ~source_file_exists:Sys.file_exists
                                ~is_native:true
                                (cs, bs, obj)
                            in
-                             fns :: acc) 
+                             fns :: acc)
                   []
                   libs))
          in
 
-         let has_extensions exts = 
+         let has_extensions exts =
            List.fold_left
              (fun acc ext ->
-                List.exists 
-                  (fun fn -> String.ends_with fn ext) 
+                List.exists
+                  (fun fn -> String.ends_with fn ext)
                   generated_files
                 || acc)
              false
@@ -123,15 +123,15 @@ let create ~ctxt t =
       findlib_roots
   in
 
-  let has_apidoc = 
+  let has_apidoc =
     List.exists
       (function
          | Doc (cs, doc) ->
              (* We estimate that a doc is an API reference * if it uses
               * ocamldoc.
               *)
-             List.mem 
-               (ExternalTool "ocamldoc") 
+             List.mem
+               (ExternalTool "ocamldoc")
                doc.doc_build_tools
 
          | Flag _ | Object _ | Library _ | Executable _ | SrcRepo _ | Test _ ->
@@ -140,7 +140,7 @@ let create ~ctxt t =
   in
 
   let mk_ocamldoc deb_pkg =
-    if not has_apidoc && 
+    if not has_apidoc &&
        (* API doc is not already generated *)
 
        List.exists (fun e -> e.has_cmi) roots then
@@ -152,9 +152,9 @@ let create ~ctxt t =
       end
   in
 
-  let mk_doc_base docdir cs doc chn = 
+  let mk_doc_base docdir cs doc chn =
     let print s = output_content s chn in
-    let installdir = 
+    let installdir =
       (* TODO: something better *)
       (* Close your eyes *)
       Unix.putenv "prefix" "/usr";
@@ -169,30 +169,30 @@ Document: $t.deb_name-$cs.cs_name
 Title: $doc.doc_title
 Section: Programming/OCaml");
       begin
-        match doc.doc_abstract with 
+        match doc.doc_abstract with
           | Some str ->
-              print ("Abstract: "^str) 
+              print ("Abstract: "^str)
           | None ->
               ()
       end;
 
-      begin 
-        match doc.doc_authors with 
+      begin
+        match doc.doc_authors with
           | [] ->
               ()
           | lst ->
-              print 
-                ("Author: "^(String.concat ", " lst)) 
+              print
+                ("Author: "^(String.concat ", " lst))
       end;
 
       print "";
 
-      begin 
-        match doc.doc_format with 
+      begin
+        match doc.doc_format with
           | HTML index ->
               print "Format: HTML";
               print ("Index: "^installdir^"/"^index)
-            
+
           | DocText ->
               print "Format: Text"
 
@@ -223,12 +223,12 @@ Section: Programming/OCaml");
         (fun n ->
            function
              | Doc (cs, doc) ->
-                 dh_with_fn deb_pkg 
+                 dh_with_fn deb_pkg
                    ("doc-base."^(string_of_int n))
                    (mk_doc_base docdir cs doc);
                  n + 1
 
-             | Object _ | Library _ | Executable _ 
+             | Object _ | Library _ | Executable _
              | Flag _ | Test _ | SrcRepo _ ->
                  n)
         1
@@ -238,33 +238,33 @@ Section: Programming/OCaml");
   in
 
     begin
-      match t.deb_exec, t.deb_dev with 
+      match t.deb_exec, t.deb_dev with
         | Some deb_pkg, Some _ ->
             dh_with_fn deb_pkg "install"
               (output_content "usr/bin")
-        | Some _, None 
+        | Some _, None
         | None, _ ->
             ()
     end;
 
-    begin 
-      match t.deb_dev with 
+    begin
+      match t.deb_dev with
         | Some (deb_dev, deb_runtime) ->
             begin
               dh_with_fn deb_dev "install.in"
-                (fun chn -> 
-                   List.iter 
+                (fun chn ->
+                   List.iter
                      (fun e ->
-                        
+
                         if e.has_cmi then
-                          output_content 
-                            (interpolate 
+                          output_content
+                            (interpolate
                                "@OCamlStdlibDir@/$e.findlib_name/*.cmi")
                             chn;
 
                         if e.has_cmi then
-                          output_content 
-                            (interpolate 
+                          output_content
+                            (interpolate
                                "@OCamlStdlibDir@/$e.findlib_name/*.ml*")
                           chn;
 
@@ -276,25 +276,25 @@ Section: Programming/OCaml");
                               chn;
                             output_content
                               (interpolate
-                                  "OPT: @OCamlStdlibDir@/$e.findlib_name/*.cmxa")
+                                 "OPT: @OCamlStdlibDir@/$e.findlib_name/*.cmxa")
                               chn
                           end;
 
                         if e.has_dll then
                           output_content
-                            (interpolate 
+                            (interpolate
                                "@OCamlStdlibDir@/$e.findlib_name/*.a")
                             chn
                         else if e.has_native then
-                          output_content 
-                            (interpolate 
+                          output_content
+                            (interpolate
                                "OPT: @OCamlStdlibDir@/$e.findlib_name/*.a")
                             chn;
 
                         begin
-                          match t.deb_doc, docdir t with 
+                          match t.deb_doc, docdir t with
                             | None, Some fn ->
-                                output_content 
+                                output_content
                                   (FilePath.make_relative "/" fn)
                                   chn;
 
@@ -305,34 +305,35 @@ Section: Programming/OCaml");
 
                      )
                      roots);
-              
+
               dh_with_fn deb_runtime "install.in"
                 (fun chn ->
                    (* At least one findlib root has a dll *)
-                   List.iter 
-                     (function 
+                   List.iter
+                     (function
                         | {has_dll = true} as e ->
-                            output_content 
-                              ("@OCamlStdlibDir@/"^e.findlib_name^"/*.so @OCamlDllDir@")
+                            output_content
+                              ("@OCamlStdlibDir@/"^
+                               e.findlib_name^"/*.so @OCamlDllDir@")
                               chn
                         | _ ->
                             ())
                      roots;
 
-                   List.iter 
+                   List.iter
                      (fun e ->
-                        output_content 
-                          (interpolate 
+                        output_content
+                          (interpolate
                              "@OCamlStdlibDir@/$e.findlib_name/META")
                           chn;
                         if e.has_byte then
-                          output_content 
+                          output_content
                             (interpolate
                                "@OCamlStdlibDir@/$e.findlib_name/*.cm[ao]")
                             chn;
                         if e.has_cmxs then
                           output_content
-                            (interpolate 
+                            (interpolate
                                "@OCamlStdlibDir@/$e.findlib_name/*.cmxs")
                             chn)
                      roots)
@@ -343,19 +344,19 @@ Section: Programming/OCaml");
     end;
 
     begin
-      match t.deb_doc with 
+      match t.deb_doc with
         | Some deb_pkg ->
             begin
               mk_ocamldoc deb_pkg;
 
-              match docdir t with 
-                | Some docdir -> 
+              match docdir t with
+                | Some docdir ->
                     begin
                       dh_with_fn deb_pkg "install"
-                        (output_content 
+                        (output_content
                            (FilePath.make_relative "/" docdir));
 
-                      mk_doc_bases deb_pkg docdir 
+                      mk_doc_bases deb_pkg docdir
                     end
 
                 | None ->
@@ -365,7 +366,7 @@ Section: Programming/OCaml");
         | None ->
             begin
               (* We need to attach the ocamldoc to some package *)
-              match t.deb_dev with 
+              match t.deb_dev with
                 | Some (deb_pkg, _) ->
                     mk_ocamldoc deb_pkg
                 | None ->
@@ -376,7 +377,7 @@ Section: Programming/OCaml");
 let insertion_point =
   "# Insertion point for oasis2debian, do not remove."
 
-let snippet_start snippet_name = 
+let snippet_start snippet_name =
   Printf.sprintf "# oasis2debian snippet '%s' start." snippet_name
 
 let snippet_end snippet_name =
@@ -386,18 +387,18 @@ let snippet_end snippet_name =
 (** Split a script file around its insertion point.
   *)
 let dh_script_split fn =
-  let rec split = 
+  let rec split =
     function
       | hd :: tl ->
           if hd = insertion_point then
             [], hd, tl
           else
-            let before, cur, after = 
+            let before, cur, after =
               split tl
             in
               hd :: before, cur, after
       | [] ->
-          failwith 
+          failwith
             (Printf.sprintf
                "'%s' not found in file '%s'"
                insertion_point fn)
@@ -419,14 +420,14 @@ $insertion_point"));
 
 (** Append data to debian/pkg.postinst.
   *)
-let dh_postinst pkg snippet_name content = 
+let dh_postinst pkg snippet_name content =
   let basename = pkg^".postinst" in
   let before, cur, after =
     dh_script_split basename
   in
     file_of_lines
       (debian_fn basename)
-      (before @ 
+      (before @
        [snippet_start snippet_name;
         content;
         snippet_end snippet_name;
@@ -434,7 +435,7 @@ let dh_postinst pkg snippet_name content =
 
 (** Prepend data to debian/pkg.prerm.
   *)
-let dh_prerm pkg snippet_name content = 
+let dh_prerm pkg snippet_name content =
   let basename = pkg^".prerm" in
   let before, cur, after =
     dh_script_split basename

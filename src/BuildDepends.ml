@@ -28,11 +28,11 @@ open ExtString
 open FileUtil
 open FilePath
 
-module SetExec = 
+module SetExec =
   Set.Make
     (String)
 
-module SetFindlib = 
+module SetFindlib =
   Set.Make
     (struct
        type t = findlib_full * OASISVersion.comparator option
@@ -43,29 +43,29 @@ module SetDepends =
   Set.Make
     (struct
        type t = string * OASISVersion.comparator option * Arch.Spec.t
-       let compare (nm1, _, _) (nm2, _, _) = 
+       let compare (nm1, _, _) (nm2, _, _) =
          String.compare nm1 nm2
      end)
 
-let cmp_opt_merge v1_opt v2_opt = 
+let cmp_opt_merge v1_opt v2_opt =
   match v1_opt, v2_opt with
-    | Some v1, Some v2 -> 
-        Some 
-          (OASISVersionExt.comparator_reduce 
+    | Some v1, Some v2 ->
+        Some
+          (OASISVersionExt.comparator_reduce
              (VAnd (v1, v2)))
     | None, opt | opt, None ->
         opt
 
 let add_depends ?(arch_spec=`All) nm ver_opt st =
   let ver_opt, arch_spec =
-    try 
-      let _, ver_opt', arch_spec' = 
+    try
+      let _, ver_opt', arch_spec' =
         List.find
           (fun (nm', _, _) -> nm' = nm)
           (SetDepends.elements st)
       in
-      let ver_opt = 
-        cmp_opt_merge ver_opt' ver_opt 
+      let ver_opt =
+        cmp_opt_merge ver_opt' ver_opt
       in
         ver_opt, Arch.Spec.merge arch_spec arch_spec'
 
@@ -75,24 +75,25 @@ let add_depends ?(arch_spec=`All) nm ver_opt st =
 
     SetDepends.add (nm, ver_opt, arch_spec) st
 
-let to_string (nm, ver_opt, arch_spec) = 
-  let arch_str = 
+let to_string (nm, ver_opt, arch_spec) =
+  let arch_str =
     Arch.Spec.to_string_build_depends arch_spec
   in
   let ver_str =
-    match ver_opt with 
+    match ver_opt with
       | Some v ->
           begin
             begin
-              match v with 
-                | VGreater _ | VGreaterEqual _ 
-                | VLesser _ | VLesserEqual _  
+              match v with
+                | VGreater _ | VGreaterEqual _
+                | VLesser _ | VLesserEqual _
                 | VEqual _ ->
                     ()
                 | VOr _ | VAnd _ ->
-                    failwith 
+                    failwith
                       (Printf.sprintf
-                         "Version constraint '%s' on build depends '%s' is too complex"
+                         "Version constraint '%s' on build depends \
+                          '%s' is too complex"
                          (string_of_comparator v)
                          nm)
             end;
@@ -106,24 +107,24 @@ let to_string (nm, ver_opt, arch_spec) =
 
 (* Compute build dependencies, against real debian packages
  *)
-let get ~ctxt pkg = 
-  let eval = 
-    let t = 
+let get ~ctxt pkg =
+  let eval =
+    let t =
       Expr.create ~ctxt pkg
     in
-      Expr.choose ~ctxt t 
+      Expr.choose ~ctxt t
   in
 
-  let depends_of_arch arch acc = 
+  let depends_of_arch arch acc =
     let eval  =
       eval (`Only arch)
     in
 
-    let add_tools tools exec = 
-      List.fold_left 
+    let add_tools tools exec =
+      List.fold_left
         (fun exec ->
            function
-             | ExternalTool nm -> 
+             | ExternalTool nm ->
                  SetExec.add nm exec
              | InternalExecutable _ ->
                  exec)
@@ -133,7 +134,7 @@ let get ~ctxt pkg =
     let depends_of_bs bs ((exec, fndlb) as acc) =
       if eval bs.bs_build then
         begin
-          let exec = 
+          let exec =
             add_tools bs.bs_build_tools exec
           in
 
@@ -157,24 +158,24 @@ let get ~ctxt pkg =
         end
     in
 
-    let depends_of_doc doc ((exec, fndlb) as acc) = 
+    let depends_of_doc doc ((exec, fndlb) as acc) =
       if eval doc.doc_build then
         add_tools doc.doc_build_tools exec, fndlb
       else
         acc
     in
 
-    let depends_of_test test ((exec, fndlb) as acc) = 
+    let depends_of_test test ((exec, fndlb) as acc) =
       if eval test.test_run then
         add_tools test.test_tools exec, fndlb
       else
         acc
     in
 
-      List.fold_left 
+      List.fold_left
         (fun ((exec, fndlb) as acc) ->
            function
-             | Library (_, bs, _) 
+             | Library (_, bs, _)
              | Executable (_, bs, _)
              | Object (_, bs, _) ->
                  depends_of_bs bs acc
@@ -184,14 +185,14 @@ let get ~ctxt pkg =
 
              | Doc (_, doc) ->
                  depends_of_doc doc acc
-             
+
              | Flag _ | SrcRepo _ ->
                  acc)
         acc
         pkg.sections
   in
 
-  let ocaml_stdlib_dir = 
+  let ocaml_stdlib_dir =
     match assert_command_output ~ctxt "ocamlc -where" with
       | hd :: _ ->
           hd
@@ -200,20 +201,20 @@ let get ~ctxt pkg =
             "Cannot determine ocaml standard library directory"
   in
 
-  let debian_depends_of_depends ?arch_spec exec fndlb st = 
+  let debian_depends_of_depends ?arch_spec exec fndlb st =
     (* Find file *)
-    let find_file ?(dev_pkg=false) fn = 
-      let filter lst = 
+    let find_file ?(dev_pkg=false) fn =
+      let filter lst =
         if dev_pkg then
           begin
-            let lst' = 
+            let lst' =
               List.fold_left
-                (fun acc nm -> 
+                (fun acc nm ->
                    if Pcre.pmatch ~pat:"^lib.*-ocaml$" nm then
                      (nm^"-dev") :: acc
                    else if String.ends_with nm "-dev" then
                      nm :: acc
-                   else 
+                   else
                      acc)
                 []
                 lst
@@ -223,45 +224,45 @@ let get ~ctxt pkg =
                *)
               if lst' <> [] then
                 lst'
-              else 
+              else
                 lst
           end
         else
           lst
       in
 
-      let output = 
-        try 
+      let output =
+        try
           assert_command_output ~ctxt
             (Printf.sprintf "dpkg -S '%s'" fn)
-        with _ ->        
-          assert_command_output ~ctxt 
+        with _ ->
+          assert_command_output ~ctxt
             (Printf.sprintf "apt-file search -F '%s'" fn)
       in
 
-      let pkg = 
-        List.flatten 
-          (List.rev_map 
+      let pkg =
+        List.flatten
+          (List.rev_map
              (fun line ->
-                match String.nsplit line ":" with 
-                  | hd :: _ -> 
-                      List.rev_map 
-                        String.strip 
+                match String.nsplit line ":" with
+                  | hd :: _ ->
+                      List.rev_map
+                        String.strip
                         (String.nsplit hd ",")
                   | _ ->
                       [])
              output)
       in
 
-        match filter pkg with 
+        match filter pkg with
           | hd :: tl ->
               if tl <> [] then
-                warning ~ctxt 
+                warning ~ctxt
                   "Choose package '%s' but other packages possible: %s"
-                  hd 
-                  (String.concat ", " 
-                     (List.map 
-                        (Printf.sprintf "'%s'") 
+                  hd
+                  (String.concat ", "
+                     (List.map
+                        (Printf.sprintf "'%s'")
                         tl));
               hd
 
@@ -272,12 +273,12 @@ let get ~ctxt pkg =
     in
 
     (* Find an executable *)
-    let find_exec nm = 
-      let fn = 
-        try 
-          which 
+    let find_exec nm =
+      let fn =
+        try
+          which
             ~path:["/usr/bin"; "/bin"; "/usr/sbin"; "/sbin"]
-            nm 
+            nm
         with Not_found ->
           (* Make a guess *)
           make_filename ["/usr/bin"; nm]
@@ -287,29 +288,29 @@ let get ~ctxt pkg =
 
     (* Find a findlib library *)
     let find_findlib nm =
-      let fn = 
-        try 
+      let fn =
+        try
           let parse_output =
             function
               | [] | [""] ->
                   raise Not_found
-              | hd :: _ -> 
+              | hd :: _ ->
                   hd
           in
 
-          let archive pred = 
-            let output = 
+          let archive pred =
+            let output =
               assert_command_output ~ctxt
-                (Printf.sprintf 
+                (Printf.sprintf
                    "ocamlfind query -predicates '%s' %s -format '%%d/%%a'"
                    pred nm)
             in
               parse_output output
           in
 
-            try 
+            try
               begin
-                archive "byte" 
+                archive "byte"
               end
 
             with Not_found ->
@@ -318,23 +319,23 @@ let get ~ctxt pkg =
                   archive "syntax,toploop"
                 with Not_found ->
                   begin
-                    let output = 
-                      assert_command_output ~ctxt 
+                    let output =
+                      assert_command_output ~ctxt
                         (Printf.sprintf
                            "ocamlfind query %s -format '%%d/META'"
                            nm)
                     in
                     let fn =
-                      parse_output output 
+                      parse_output output
                     in
                       if Sys.file_exists fn then
                         fn
                       else
                         begin
-                          warning ~ctxt 
-                            "Cannot find installed file for findlib package '%s'" 
+                          warning ~ctxt
+                            "Cannot find installed file for findlib package '%s"
                             nm;
-                          raise Not_found 
+                          raise Not_found
                         end
                   end
               end
@@ -346,7 +347,7 @@ let get ~ctxt pkg =
         find_file ~dev_pkg:true fn
     in
 
-    let st = 
+    let st =
       SetExec.fold
         (fun nm st ->
            add_depends ?arch_spec (find_exec nm) None st)
@@ -361,13 +362,13 @@ let get ~ctxt pkg =
         st
   in
 
-  let lst = 
+  let lst =
     List.rev_map
       (fun arch ->
-         let arch_spec = 
+         let arch_spec =
            `Only (arch, [])
          in
-           arch_spec, 
+           arch_spec,
            depends_of_arch
              arch
              (SetExec.empty, SetFindlib.empty))
@@ -375,8 +376,8 @@ let get ~ctxt pkg =
   in
 
   (* Compute common dependencies *)
-  let common_exec, common_fndlb = 
-    match lst with 
+  let common_exec, common_fndlb =
+    match lst with
       | (_, hd) :: tl ->
           List.fold_left
             (fun (exec, fndlb) (_, (exec', fndlb')) ->
@@ -388,12 +389,12 @@ let get ~ctxt pkg =
           SetFindlib.empty
   in
 
-  let debian_depends = 
-    let cos = 
-      comparator_of_string 
+  let debian_depends =
+    let cos =
+      comparator_of_string
     in
-      List.fold_right 
-        SetDepends.add 
+      List.fold_right
+        SetDepends.add
         [
           "debhelper",     Some (cos ">= 7.0.50~"), `All;
           "dh-ocaml",      Some (cos ">= 0.9~"),    `All;
@@ -408,8 +409,8 @@ let get ~ctxt pkg =
         SetDepends.empty
   in
 
-  let debian_depends = 
-    debian_depends_of_depends 
+  let debian_depends =
+    debian_depends_of_depends
       common_exec
       common_fndlb
       debian_depends
@@ -417,8 +418,8 @@ let get ~ctxt pkg =
 
 
   (* Check for extra dependencies for particular architecture *)
-  let debian_depends = 
-    List.fold_left 
+  let debian_depends =
+    List.fold_left
       (fun st (arch_spec, (exec, fndlb)) ->
          let exec'  = SetExec.diff exec common_exec in
          let fndlb' = SetFindlib.diff fndlb common_fndlb in

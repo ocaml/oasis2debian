@@ -19,7 +19,7 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-(** Update action 
+(** Update action
   *)
 
 open OASISMessage
@@ -29,8 +29,8 @@ open Common
 
 module S = BuildDepends.SetDepends
 
-let diff_depends ~ctxt lst1 lst2 = 
-  let to_set lst = 
+let diff_depends ~ctxt lst1 lst2 =
+  let to_set lst =
     List.fold_left (fun st e -> S.add e st) S.empty lst
   in
   (* Compute dependency added/removed *)
@@ -40,7 +40,7 @@ let diff_depends ~ctxt lst1 lst2 =
   let dels = S.diff st1 st2 in
 
     (* TODO: compute dependency upgraded/downgraded *)
-    S.iter 
+    S.iter
       (fun b ->
          warning ~ctxt
            "New dependency: %s"
@@ -53,18 +53,18 @@ let diff_depends ~ctxt lst1 lst2 =
            (BuildDepends.to_string b))
       dels
 
-let run ~ctxt args = 
+let run ~ctxt args =
 
-  let t = 
+  let t =
     Load.load ~ctxt args
   in
 
   (* TODO: move this to debian-formats *)
-  let with_fn fn f = 
-    let chn = 
+  let with_fn fn f =
+    let chn =
       open_in fn
     in
-      try 
+      try
         let res =
           f (IO.input_channel chn)
         in
@@ -75,24 +75,24 @@ let run ~ctxt args =
         raise e
   in
 
-  let ctl_source, ctl_binaries = 
+  let ctl_source, ctl_binaries =
     with_fn "debian/control" Control.parse
   in
 
-  let changelog = 
+  let changelog =
     with_fn "debian/changelog" Changelog.head
   in
 
   let ctl_build_depends =
-    List.map 
+    List.map
       (function
-         | ((pkg, None), _) :: _ -> 
+         | ((pkg, None), _) :: _ ->
              pkg, None, `All
-         | ((pkg, Some (op, ver)), _) :: _ -> 
-             pkg, 
-             Some (OASISVersion.comparator_of_string (op^" "^ver)), 
+         | ((pkg, Some (op, ver)), _) :: _ ->
+             pkg,
+             Some (OASISVersion.comparator_of_string (op^" "^ver)),
              `All
-         | [] -> 
+         | [] ->
              invalid_arg "ctl_build_depends")
       ctl_source.Control.build_depends
   in
@@ -101,8 +101,8 @@ let run ~ctxt args =
     diff_depends ~ctxt ctl_build_depends t.build_depends
   in
 
-  let () = 
-    let oasis_version =  
+  let () =
+    let oasis_version =
       OASISVersion.string_of_version t.pkg_generic.version
     in
       (* TODO: take into account EPOCH et al *)

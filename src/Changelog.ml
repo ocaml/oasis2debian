@@ -15,11 +15,12 @@ let distribution =
     (Conf.Value "UNRELEASED")
 
 let create ~ctxt t =
-  let pkg_version = 
+  let pkg_version =
     OASISVersion.string_of_version t.pkg.version
   in
   let date =
-    CalendarLib.Printer.Calendar.sprint "%a, %d %b %Y %T %z" (CalendarLib.Calendar.now ())
+    CalendarLib.Printer.Calendar.sprint "%a, %d %b %Y %T %z"
+      (CalendarLib.Calendar.now ())
   in
   let distribution = Conf.get ~ctxt distribution in
   let closes =
@@ -28,7 +29,7 @@ let create ~ctxt t =
     else
       ""
   in
-    debian_with_fn 
+    debian_with_fn
       "changelog"
       (output_content
          (interpolate "\

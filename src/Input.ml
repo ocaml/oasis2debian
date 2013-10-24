@@ -24,15 +24,15 @@ open Common
 open FileUtil
 
 (** Edit a text in an editor *)
-let long ~ctxt text help = 
-  let fn, chn = 
+let long ~ctxt text help =
+  let fn, chn =
     Filename.open_temp_file "oasis2debian-" ".txt"
   in
 
-  let read_content () = 
-    let chn = 
-      open_in fn 
-    in 
+  let read_content () =
+    let chn =
+      open_in fn
+    in
     let str =
       String.make (in_channel_length chn) 'X'
     in
@@ -40,28 +40,28 @@ let long ~ctxt text help =
       really_input chn str 0 (String.length str);
       close_in chn
     in
-    let lst = 
+    let lst =
       List.filter
         (fun s -> not (String.starts_with s "#"))
         (String.nsplit str "\n")
     in
 
-    let rec chop_blank_eol str = 
-      if String.ends_with str " " || 
+    let rec chop_blank_eol str =
+      if String.ends_with str " " ||
          String.ends_with str "\t" ||
          String.ends_with str "\r" then
-        chop_blank_eol (String.rchop str) 
+        chop_blank_eol (String.rchop str)
       else
         str
     in
 
-    let lst = 
+    let lst =
       List.rev_map chop_blank_eol lst
     in
-      
-    let rec chop_blank_last_lines = 
+
+    let rec chop_blank_last_lines =
       function
-        | "" :: tl -> 
+        | "" :: tl ->
             chop_blank_last_lines tl
         | lst ->
             List.rev lst
@@ -75,16 +75,16 @@ let long ~ctxt text help =
   in
 
 
-    try 
+    try
       begin
-        let res = 
+        let res =
           (* Write the initial content *)
           output_string chn text;
           output_string chn
             (String.concat "\n# "
-               ("" :: 
-                "Type your text above, lines starting with '#' will be ignored" ::
-                (String.nsplit help "\n")));
+               ("" ::
+                "Type your text above, lines starting with \
+                 '#' will be ignored" :: (String.nsplit help "\n")));
           close_out chn;
 
           (* Run the editor (debian specific) *)

@@ -22,7 +22,7 @@
 open OASISVersion
 
 (*
-let debug_compare cmp = 
+let debug_compare cmp =
   Format.fprintf Format.std_formatter
     "@[<v>Comparator '%s':@ @[%a@]@]\n"
     (string_of_comparator cmp)
@@ -30,9 +30,9 @@ let debug_compare cmp =
     (odn_of_comparator cmp)
  *)
 
-let comparator_reduce cmp = 
+let comparator_reduce cmp =
 
-  let vmin v1 v2 = 
+  let vmin v1 v2 =
     if version_compare v1 v2 < 0 then
       v1
     else
@@ -46,7 +46,7 @@ let comparator_reduce cmp =
       v1
   in
 
-  let rec reduce cmp = 
+  let rec reduce cmp =
 (*
     debug_compare cmp;
  *)
@@ -64,7 +64,7 @@ let comparator_reduce cmp =
 
       | VAnd (c1, c2) ->
           begin
-            match reduce c1, reduce c2 with 
+            match reduce c1, reduce c2 with
               | c1', c2' when c1' = c2' -> c1'
               | c1', c2' -> VAnd (c1', c2')
           end
@@ -83,14 +83,13 @@ let comparator_reduce cmp =
 
 
 (*
-let red_cmp str = 
+let red_cmp str =
   Printf.printf "%s -> %s"
     str
     (string_of_comparator (comparator_reduce (comparator_of_string str)))
 
-
-let () = 
-  List.iter red_cmp 
+let () =
+  List.iter red_cmp
     [
       ">= 3.10.2 || >= 3.11.1-3~";
     ]

@@ -19,24 +19,24 @@
 (* Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA              *)
 (******************************************************************************)
 
-(** Debian architectures 
+(** Debian architectures
   *)
 
-type t = 
+type t =
       {
         arch_name: string;
         arch_conf: (string * string) list;
       }
 
-let compare t1 t2 = 
+let compare t1 t2 =
   String.compare t1.arch_name t2.arch_name
 
 
-let rall = 
+let rall =
   ref []
 
-let mk nm conf = 
-  let res = 
+let mk nm conf =
+  let res =
     {
       arch_name = nm;
       arch_conf = conf;
@@ -45,10 +45,10 @@ let mk nm conf =
     rall := res :: !rall;
     res
 
-let linux_i386 = 
+let linux_i386 =
   mk "i386" []
 
-let linux_amd64 = 
+let linux_amd64 =
   mk "amd64" []
 
 (*
@@ -66,14 +66,14 @@ let linux_amd64 =
     "sparc", linux_sparc;
 *)
 
-let all () = 
+let all () =
   !rall
 
 
 let to_string {arch_name = nm} =
   nm
 
-(** Handle list of architectures 
+(** Handle list of architectures
   *)
 module Spec =
 struct
@@ -81,18 +81,18 @@ struct
   type arch = t
   type t = [ `All | `Only of arch * arch list ]
 
-  let mem t arch = 
+  let mem t arch =
     match t with
       | `All -> true (* Match all arches *)
       | `Only (a, lst) ->
           List.exists
-            (fun a' -> compare arch a' = 0) 
+            (fun a' -> compare arch a' = 0)
             (a :: lst)
 
-  let merge t1 t2 = 
-    match t1, t2 with 
-      | `All, `Only _ 
-      | `Only _, `All 
+  let merge t1 t2 =
+    match t1, t2 with
+      | `All, `Only _
+      | `Only _, `All
       | `All, `All ->
           `All
 
@@ -100,7 +100,7 @@ struct
           begin
             List.fold_left
               (fun t e ->
-                 match t, mem t e with 
+                 match t, mem t e with
                    | `Only (a, lst), false ->
                        `Only (a, e :: lst)
                    | t, _ ->
@@ -110,24 +110,24 @@ struct
           end
 
 
-  let to_string_build_depends = 
+  let to_string_build_depends =
     function
-      | `All -> 
+      | `All ->
           ""
       | `Only (hd, tl) as t ->
           begin
             (* All arches of the package *)
-            let lst = hd :: tl in 
+            let lst = hd :: tl in
             let neg =
-              List.map 
-                (fun arch -> "!"^(to_string arch)) 
-                (List.filter 
+              List.map
+                (fun arch -> "!"^(to_string arch))
+                (List.filter
                    (* Remove arches of the package *)
-                   (fun arch -> not (mem t arch)) 
+                   (fun arch -> not (mem t arch))
                    (* All arches *)
                    (all ()))
             in
-            let lst = 
+            let lst =
               List.map to_string lst
             in
 
@@ -136,7 +136,7 @@ struct
                 neg
               else
                 lst
-            in            
+            in
               Printf.sprintf " [%s]" (String.concat ", " lst)
           end
 end

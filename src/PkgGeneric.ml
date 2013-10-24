@@ -26,19 +26,17 @@
 
 open OASISTypes
 
-let create ~ctxt expr pkg = 
+let create ~ctxt expr pkg =
 
-  let eval = 
-    Expr.choose 
-      ~ctxt 
-      expr 
+  let eval =
+    Expr.choose ~ctxt expr
       (`All (fun x y -> x || y))
   in
 
   let sections =
     List.fold_left
       (fun acc e ->
-         match e with 
+         match e with
            | Object (_, bs, _)
            | Library (_, bs, _)
            | Executable (_, bs, _) ->
