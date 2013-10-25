@@ -43,7 +43,9 @@ let args_for_tarball =
     "--dh-dirs"; "sekred,var/lib/sekred/domains";
     "--dpkg-statoverride"; "/usr/bin/sekred,root,sekred,2755";
     "--dpkg-statoverride"; "/var/lib/sekred/domains,root,sekred,1730";
-    "--no-manpage"; "usr/bin/sekred"];
+    "--no-manpage"; "usr/bin/sekred";
+    "--init-command"; "sekred init";
+    "--upgrade-command"; "sekred init"];
   ]
 
 let check_file_style test_ctxt fn =

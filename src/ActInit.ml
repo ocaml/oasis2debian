@@ -65,6 +65,7 @@ let run ~ctxt args =
     DhFiles.create ~ctxt t;
     Group.create ~ctxt t;
     DpkgStatOverride.create ~ctxt t;
+    Upgrade.create ~ctxt t;
     DhDirs.create ~ctxt t;
     LintianOverrides.create ~ctxt t;
   in
