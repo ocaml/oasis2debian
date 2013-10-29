@@ -23,10 +23,26 @@ open OASISTypes
 open Common
 open ExtString
 
+let executable_extra_depends =
+  Conf.create
+    ~cli:"--executable-extra-depends"
+    "Extra depends to add to executable package."
+    (Conf.Value "")
+
+let library_dev_extra_depends =
+  Conf.create
+    ~cli:"--library-dev-extra-depends"
+    "Extra depends to add to library dev package."
+    (Conf.Value "")
+
+let library_runtime_extra_depends =
+  Conf.create
+    ~cli:"--library-runtime-extra-depends"
+    "Extra depends to add to library runtime package."
+    (Conf.Value "")
+
 let create ~ctxt t =
-  let sep =
-    ",\n  "
-  in
+  let sep = ",\n  " in
 
   let build_depends =
     String.concat sep
@@ -35,16 +51,23 @@ let create ~ctxt t =
          t.build_depends)
   in
 
-  let src_name =
-    t.deb_name
-  in
+  let src_name = t.deb_name in
 
   let exec_depends =
-    if Conf.get ~ctxt Group.group <> None then
-      "adduser, "
-    else
-      ""
+    let base_deps =
+      match Conf.get ~ctxt executable_extra_depends with
+        | "" -> ""
+        | str -> str^", "
+    in
+      if Conf.get ~ctxt Group.group <> None then
+        "adduser, "^base_deps
+      else
+        base_deps
   in
+
+  let lib_dev_depends = Conf.get ~ctxt library_dev_extra_depends in
+
+  let lib_runtime_depends = Conf.get ~ctxt library_runtime_extra_depends in
 
   let description =
     let lst =
@@ -127,7 +150,7 @@ Description: $t.pkg.synopsis
                    output_intro deb_dev;
                    output_content
                      (interpolate "\
-Depends: \${ocaml:Depends}, \${misc:Depends}
+Depends: $lib_dev_depends\${ocaml:Depends}, \${misc:Depends}
 Provides: \${ocaml:Provides}
 Recommends: ocaml-findlib
 Description: $t.pkg.synopsis
@@ -136,7 +159,8 @@ Description: $t.pkg.synopsis
                    output_intro deb_runtime;
                    output_content
                       (interpolate "\
-Depends: \${ocaml:Depends}, \${misc:Depends}, \${shlibs:Depends}
+Depends: $lib_runtime_depends\${ocaml:Depends}, \
+         \${misc:Depends}, \${shlibs:Depends}
 Provides: \${ocaml:Provides}
 Description: $t.pkg.synopsis
  $description
