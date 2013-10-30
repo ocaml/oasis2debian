@@ -25,6 +25,7 @@
 open OASISTypes
 open OASISFindlib
 open ExtString
+open BuildDepends
 open Common
 
 type t =
@@ -127,7 +128,7 @@ let create ~ctxt t =
     List.exists
       (function
          | Doc (cs, doc) ->
-             (* We estimate that a doc is an API reference * if it uses
+             (* We estimate that a doc is an API reference if it uses
               * ocamldoc.
               *)
              List.mem
@@ -148,7 +149,11 @@ let create ~ctxt t =
 
       begin
         dh_with_fn deb_pkg "ocamldoc"
-          (output_content "# Nothing")
+          (if t.findlib_packages = [] then
+             output_content "# Nothing"
+           else
+             output_content (" -package " ^
+                             (String.concat "," t.findlib_packages)))
       end
   in
 

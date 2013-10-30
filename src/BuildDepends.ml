@@ -75,6 +75,93 @@ let add_depends ?(arch_spec=`All) nm ver_opt st =
 
     SetDepends.add (nm, ver_opt, arch_spec) st
 
+let depends_of_arch ~ctxt pkg arch acc =
+  let eval =
+    let t =
+      Expr.create ~ctxt pkg
+    in
+      Expr.choose ~ctxt t (`Only arch)
+  in
+
+  let add_tools tools exec =
+    List.fold_left
+      (fun exec ->
+         function
+           | ExternalTool nm ->
+               SetExec.add nm exec
+           | InternalExecutable _ ->
+               exec)
+      exec tools
+  in
+
+  let depends_of_bs bs ((exec, fndlb) as acc) =
+    if eval bs.bs_build then
+      begin
+        let exec =
+          add_tools bs.bs_build_tools exec
+        in
+
+        let fndlb =
+          List.fold_left
+            (fun fndlb ->
+               function
+                 | FindlibPackage (nm, ver_opt) ->
+                     SetFindlib.add (nm, ver_opt) fndlb
+                 | InternalLibrary _ ->
+                     fndlb)
+            fndlb
+            bs.bs_build_depends
+        in
+
+          exec, fndlb
+      end
+    else
+      begin
+        acc
+      end
+  in
+
+  let depends_of_doc doc ((exec, fndlb) as acc) =
+    if eval doc.doc_build then
+      add_tools doc.doc_build_tools exec, fndlb
+    else
+      acc
+  in
+
+  let depends_of_test test ((exec, fndlb) as acc) =
+    if eval test.test_run then
+      add_tools test.test_tools exec, fndlb
+    else
+      acc
+  in
+
+    List.fold_left
+      (fun ((exec, fndlb) as acc) ->
+         function
+           | Library (_, bs, _)
+           | Executable (_, bs, _)
+           | Object (_, bs, _) ->
+               depends_of_bs bs acc
+
+           | Test (_, test) ->
+               depends_of_test test acc
+
+           | Doc (_, doc) ->
+               depends_of_doc doc acc
+
+           | Flag _ | SrcRepo _ ->
+               acc)
+      acc
+      pkg.sections
+
+let depends_of_all_arches ~ctxt pkg acc =
+  List.rev_map
+    (fun arch ->
+       let arch_spec = `Only (arch, []) in
+         arch_spec,
+         depends_of_arch ~ctxt pkg arch acc)
+    (Arch.all ())
+
 let to_string (nm, ver_opt, arch_spec) =
   let arch_str =
     Arch.Spec.to_string_build_depends arch_spec
@@ -108,90 +195,6 @@ let to_string (nm, ver_opt, arch_spec) =
 (* Compute build dependencies, against real debian packages
  *)
 let get ~ctxt pkg =
-  let eval =
-    let t =
-      Expr.create ~ctxt pkg
-    in
-      Expr.choose ~ctxt t
-  in
-
-  let depends_of_arch arch acc =
-    let eval  =
-      eval (`Only arch)
-    in
-
-    let add_tools tools exec =
-      List.fold_left
-        (fun exec ->
-           function
-             | ExternalTool nm ->
-                 SetExec.add nm exec
-             | InternalExecutable _ ->
-                 exec)
-        exec tools
-    in
-
-    let depends_of_bs bs ((exec, fndlb) as acc) =
-      if eval bs.bs_build then
-        begin
-          let exec =
-            add_tools bs.bs_build_tools exec
-          in
-
-          let fndlb =
-            List.fold_left
-              (fun fndlb ->
-                 function
-                   | FindlibPackage (nm, ver_opt) ->
-                       SetFindlib.add (nm, ver_opt) fndlb
-                   | InternalLibrary _ ->
-                       fndlb)
-              fndlb
-              bs.bs_build_depends
-          in
-
-            exec, fndlb
-        end
-      else
-        begin
-          acc
-        end
-    in
-
-    let depends_of_doc doc ((exec, fndlb) as acc) =
-      if eval doc.doc_build then
-        add_tools doc.doc_build_tools exec, fndlb
-      else
-        acc
-    in
-
-    let depends_of_test test ((exec, fndlb) as acc) =
-      if eval test.test_run then
-        add_tools test.test_tools exec, fndlb
-      else
-        acc
-    in
-
-      List.fold_left
-        (fun ((exec, fndlb) as acc) ->
-           function
-             | Library (_, bs, _)
-             | Executable (_, bs, _)
-             | Object (_, bs, _) ->
-                 depends_of_bs bs acc
-
-             | Test (_, test) ->
-                 depends_of_test test acc
-
-             | Doc (_, doc) ->
-                 depends_of_doc doc acc
-
-             | Flag _ | SrcRepo _ ->
-                 acc)
-        acc
-        pkg.sections
-  in
-
   let ocaml_stdlib_dir =
     match assert_command_output ~ctxt "ocamlc -where" with
       | hd :: _ ->
@@ -362,18 +365,7 @@ let get ~ctxt pkg =
         st
   in
 
-  let lst =
-    List.rev_map
-      (fun arch ->
-         let arch_spec =
-           `Only (arch, [])
-         in
-           arch_spec,
-           depends_of_arch
-             arch
-             (SetExec.empty, SetFindlib.empty))
-      (Arch.all ())
-  in
+  let lst = depends_of_all_arches ~ctxt pkg (SetExec.empty, SetFindlib.empty) in
 
   (* Compute common dependencies *)
   let common_exec, common_fndlb =

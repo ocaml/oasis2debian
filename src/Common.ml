@@ -40,6 +40,7 @@ type build_depend =
 type t =
   {
     build_depends: build_depend list;
+    findlib_packages: string list;
     description:   string;
     homepage:      string;
     uploader:      string;

@@ -123,9 +123,24 @@ let load ~ctxt args =
       raise (ExitCode 0)
   in
 
+  let findlib_packages =
+    let lst =
+      BuildDepends.depends_of_all_arches ~ctxt pkg
+        (BuildDepends.SetExec.empty, BuildDepends.SetFindlib.empty)
+    in
+    let findlib_set =
+      List.fold_left
+        (fun findlib_set (_, (_, findlib_set')) ->
+           BuildDepends.SetFindlib.union findlib_set findlib_set')
+        BuildDepends.SetFindlib.empty lst
+    in
+      List.map fst (BuildDepends.SetFindlib.elements findlib_set)
+  in
+
   let t =
     {
-      build_depends = BuildDepends.get ~ctxt pkg [];
+      build_depends   = BuildDepends.get ~ctxt pkg [];
+      findlib_packages = findlib_packages;
       description   = Conf.get ~ctxt description;
       homepage      = Conf.get ~ctxt homepage;
       uploader      = Conf.get ~ctxt uploader;
