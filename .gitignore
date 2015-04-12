@@ -1,6 +1,7 @@
-Main.byte
-test.byte
-_build
-setup.log
-setup.data
-src/Version.ml
+/Main.byte
+/test.byte
+/_build
+/setup.log
+/setup.data
+/src/Version.ml
+/dist

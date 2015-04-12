@@ -108,7 +108,8 @@ deploy: headache
 	# TODO: create a plugin to create documentation.
 	# oasis doc-dist
 	admin-gallu-deploy --verbose \
-	  --forge_upload --forge_group oasis --forge_user gildor-admin
+	  --forge_upload --forge_group oasis --forge_group oasis2debian \
+	  --forge_user gildor-admin
 	# TODO: when oasis doc-dist will work, re-add.
 	#  --forge_extra_file "dist/oasis2debian-doc-$(shell oasis query version).tar.gz"
 	# TODO: create a plugin to send announcement.
