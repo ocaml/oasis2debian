@@ -65,24 +65,9 @@ let set ~ctxt t =
       t.pkg_generic.sections
   in
 
-  let arch lst =
-    let is_all =
-      List.for_all
-        (function
-           |  {bs_compiled_object = Byte} ->
-               true
-
-           | _ ->
-               false)
-        (List.rev_map
-           (fun (_, bs, _) -> bs)
-           lst)
-    in
-      if is_all then
-        "all"
-      else
-        "any"
-  in
+  (* TODO: we may be 'all' iff only an exec with no deps or a
+     native arch iff Native in bs. *)
+  let arch lst = "any" in
 
   let mk_deb nm lst =
     {name = nm; arch = arch lst}

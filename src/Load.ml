@@ -79,17 +79,17 @@ let load ~ctxt args =
     PkgGeneric.create ~ctxt expr pkg
   in
 
-  let dflt r x =
+  let dflt r f x =
     match x, Conf.is_set r with
       | Some e, false ->
-          Conf.set r e
+          Conf.set r (f e)
       | _ ->
           ()
   in
 
   let () =
-    dflt description pkg.OASISTypes.description;
-    dflt homepage    pkg.OASISTypes.homepage
+    dflt description OASISText.to_string pkg.OASISTypes.description;
+    dflt homepage    (fun s -> s) pkg.OASISTypes.homepage
   in
 
   let () =

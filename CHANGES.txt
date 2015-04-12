@@ -1,3 +1,10 @@
+2015-04-12  Sylvain Le Gall <sylvain AT le-gall.net>
+
+    * Version 0.1.1
+    * Use OPT: for installing .cmxs (for non-native architecture).
+    * Binary/Executable package use "Arch: any" rather than "all" because the
+      dependency on libXXX will depend on the architecture.
+
 2013-10-24  Sylvain Le Gall <sylvain AT le-gall.net>
 
     * Initial version 0.1.0

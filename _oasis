@@ -1,6 +1,6 @@
 OASISFormat: 0.3
 Name:        oasis2debian
-Version:     0.1.0
+Version:     0.1.1
 Synopsis:    Create and maintain Debian package for an OASIS package
 Authors:     Sylvain Le Gall
 Copyrights:  (C) 2010 OCamlCore SARL,

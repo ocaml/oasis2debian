@@ -123,8 +123,8 @@ Build-Depends:
 Standards-Version: 3.9.1
 Homepage: $t.homepage
 Vcs-Git: git://git.debian.org/git/pkg-ocaml-maint/packages/${src_name}.git
-Vcs-Browser:
-  http://git.debian.org/?p=pkg-ocaml-maint/packages/${src_name}.git");
+Vcs-Browser: \
+http://git.debian.org/?p=pkg-ocaml-maint/packages/${src_name}.git");
 
            begin
              match t.deb_exec with
@@ -160,7 +160,7 @@ Description: $t.pkg.synopsis
                    output_content
                       (interpolate "\
 Depends: $lib_runtime_depends\${ocaml:Depends}, \
-         \${misc:Depends}, \${shlibs:Depends}
+\${misc:Depends}, \${shlibs:Depends}
 Provides: \${ocaml:Provides}
 Description: $t.pkg.synopsis
  $description

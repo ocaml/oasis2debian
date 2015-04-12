@@ -339,7 +339,7 @@ Section: Programming/OCaml");
                         if e.has_cmxs then
                           output_content
                             (interpolate
-                               "@OCamlStdlibDir@/$e.findlib_name/*.cmxs")
+                               "OPT: @OCamlStdlibDir@/$e.findlib_name/*.cmxs")
                             chn)
                      roots)
             end
