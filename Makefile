@@ -1,7 +1,7 @@
 ################################################################################
-#  oasis2debian: create and maintain a debian/ directory using _oasis          #
+#  oasis2debian: Create and maintain Debian package for an OASIS package       #
 #                                                                              #
-#  Copyright (C) 2010, OCamlCore SARL, http://www.ocamlcore.com                #
+#  Copyright (C) 2013, Sylvain Le Gall                                         #
 #                                                                              #
 #  This library is free software; you can redistribute it and/or modify it     #
 #  under the terms of the GNU Lesser General Public License as published by    #
@@ -92,8 +92,8 @@ test: precommit
 headache:
 	find ./ \
 	  -name _darcs -prune -false \
-	  -name .git -prune -false \
-	  -name .svn -prune -false \
+	  -o -name .git -prune -false \
+	  -o -name .svn -prune -false \
 	  -o -name _build -prune -false \
 	  -o -name dist -prune -false \
 	  -o -name '*[^~]' -type f \
