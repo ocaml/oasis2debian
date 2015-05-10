@@ -121,3 +121,7 @@ deploy: headache
 	  --setup_run --setup_args "-setup-update dynamic" --use_vcs
 
 .PHONY: deploy
+opam:
+	yes | oasis2opam --local
+	cd opam; opam lint
+.PHONY: opam

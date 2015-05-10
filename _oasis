@@ -39,3 +39,8 @@ Executable test
 Test main
   Command: $test -oasis2debian $oasis2debian
   TestTools: oasis2debian, test, tar, ocamlmod
+
+SourceRepository master
+  Type:     git
+  Location: https://github.com/ocaml/oasis2debian.git
+  Browser:  https://github.com/ocaml/oasis2debian
