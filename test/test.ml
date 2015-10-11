@@ -46,6 +46,9 @@ let args_for_tarball =
     "--no-manpage"; "usr/bin/sekred";
     "--init-command"; "sekred init";
     "--upgrade-command"; "sekred init"];
+
+  "dlnasync-0.0.1.tar.gz",
+  [];
   ]
 
 let check_file_style test_ctxt fn =
@@ -67,60 +70,73 @@ let check_file_style test_ctxt fn =
 let check_debian_dir_style test_ctxt dn =
   find Is_file dn (fun () -> check_file_style test_ctxt) ()
 
+
+let test_tarballs =
+  List.map
+    (fun (tarball, args) ->
+       tarball >::
+       (fun test_ctxt ->
+          let dn = bracket_tmpdir test_ctxt in
+          let tarball_fn = in_testdata_dir test_ctxt [tarball] in
+          let topdir =
+            Filename.concat dn
+              (chop_extension (chop_extension tarball))
+          in
+          let () =
+            assert_command ~chdir:dn ~ctxt:test_ctxt
+              (tar test_ctxt) ["xzf"; tarball_fn];
+          in
+          let pkg =
+            OASISParse.from_file
+              ~ctxt:{!OASISContext.default with
+                         OASISContext.ignore_plugins = true}
+              (Filename.concat topdir "_oasis")
+          in
+          let pkg_name = pkg.OASISTypes.name in
+          let pkg_ver =
+            OASISVersion.string_of_version pkg.OASISTypes.version
+          in
+          let pkg_dir = Filename.concat dn pkg_name in
+          let () =
+            cp [tarball_fn]
+              (Filename.concat dn
+                 (Printf.sprintf "%s_%s.orig.tar.gz" pkg_name pkg_ver));
+            Sys.rename topdir pkg_dir;
+          in
+            assert_command ~ctxt:test_ctxt ~chdir:pkg_dir
+              (oasis2debian test_ctxt)
+              ("init" :: "--backtrace" :: "true" :: args);
+            check_debian_dir_style test_ctxt
+              (Filename.concat pkg_dir "debian");
+            assert_command ~ctxt:test_ctxt ~chdir:pkg_dir
+              (debuild test_ctxt) ["-uc"; "-us"];
+            assert_command ~ctxt:test_ctxt ~chdir:dn
+              (lintian test_ctxt)
+              ("--fail-on-warnings" ::
+               (filter (Has_extension "changes") (ls ".")))))
+    args_for_tarball
+
 let tests =
-  let pwd = pwd () in
-  let tarballs =
-    filter
-      (Has_extension "gz")
-      (ls (make_filename [pwd; "test"; "data"]))
-  in
-    List.map
-      (fun tarball ->
-         (basename tarball) >::
-         (fun test_ctxt ->
-            let dn = bracket_tmpdir test_ctxt in
-            let topdir =
-              Filename.concat dn
-                (chop_extension (chop_extension (basename tarball)))
-            in
-            let () =
-              assert_command ~chdir:dn ~ctxt:test_ctxt
-                (tar test_ctxt) ["xzf"; tarball];
-            in
-            let pkg =
-              OASISParse.from_file
-                ~ctxt:{!OASISContext.default with
-                           OASISContext.ignore_plugins = true}
-                (Filename.concat topdir "_oasis")
-            in
-            let pkg_name = pkg.OASISTypes.name in
-            let pkg_ver =
-              OASISVersion.string_of_version pkg.OASISTypes.version
-            in
-            let pkg_dir = Filename.concat dn pkg_name in
-            let () =
-              cp [tarball]
-                (Filename.concat dn
-                   (Printf.sprintf "%s_%s.orig.tar.gz" pkg_name pkg_ver));
-              Sys.rename topdir pkg_dir;
-            in
-            let args =
-              try
-                List.assoc (basename tarball) args_for_tarball
-              with Not_found ->
-                []
-            in
-              assert_command ~ctxt:test_ctxt ~chdir:pkg_dir
-                (oasis2debian test_ctxt) ("init" :: args);
-              check_debian_dir_style test_ctxt
-                (Filename.concat pkg_dir "debian");
-              assert_command ~ctxt:test_ctxt ~chdir:pkg_dir
-                (debuild test_ctxt) ["-uc"; "-us"];
-              assert_command ~ctxt:test_ctxt ~chdir:dn
-                (lintian test_ctxt)
-                ("--fail-on-warnings" ::
-                 (filter (Has_extension "changes") (ls ".")))))
-      tarballs
+  ("all_tarballs_covered" >::
+   (fun test_ctxt ->
+      let module EString =
+        struct
+          type t = string
+          let compare = String.compare
+          let pp_printer = Format.pp_print_string
+          let pp_print_sep = OUnitDiff.pp_comma_separator
+        end
+      in
+      let module DiffStringSet = OUnitDiff.SetMake(EString) in
+        DiffStringSet.assert_equal
+          (DiffStringSet.of_list
+             (List.map fst args_for_tarball))
+          (DiffStringSet.of_list
+             (List.map Filename.basename
+                (filter
+                   (Has_extension "gz")
+                   (ls (in_testdata_dir test_ctxt [])))))))
+  :: test_tarballs
 
 let () =
   Unix.putenv "EDITOR" "true";
