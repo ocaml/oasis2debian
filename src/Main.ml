@@ -23,6 +23,23 @@
 open OASISMessage
 open Common
 
+
+let backtrace =
+  let b = ref false in
+    Conf.create_full
+      ~cli:"--backtrace"
+      (function
+         | "true" -> true
+         | "false" -> false
+         | str ->
+             failwith
+               (Printf.sprintf
+                  "Unable to parse %S as a boolean (true or false)."
+                  str))
+      "true|false Print backtrace if program exits with an error."
+      (Conf.Value !b)
+
+
 let () =
   let () =
     (* Clean ENV *)
@@ -66,6 +83,8 @@ let () =
     with
       | Failure str ->
           error ~ctxt "%s" str;
+          if Conf.get ~ctxt backtrace then
+            Printexc.print_backtrace stderr;
           exit 1
       | ExitCode i ->
           exit i
