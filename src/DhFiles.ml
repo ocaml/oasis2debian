@@ -159,15 +159,7 @@ let create ~ctxt t =
 
   let mk_doc_base docdir cs doc chn =
     let print s = output_content s chn in
-    let installdir =
-      (* TODO: something better *)
-      (* Close your eyes *)
-      Unix.putenv "prefix" "/usr";
-      Unix.putenv "docdir" docdir;
-      BaseStandardVar.init t.pkg_generic;
-      BaseEnv.var_expand doc.doc_install_dir
-      (* You can open your eyes again *)
-    in
+    let installdir = var_expand t doc.doc_install_dir in
       print
         (interpolate "\
 Document: $t.deb_name-$cs.cs_name
@@ -228,10 +220,14 @@ Section: Programming/OCaml");
         (fun n ->
            function
              | Doc (cs, doc) ->
-                 dh_with_fn deb_pkg
-                   ("doc-base."^(string_of_int n))
-                   (mk_doc_base docdir cs doc);
-                 n + 1
+                 if not (DhManpages.doc_is_manpage cs doc) then begin
+                   dh_with_fn deb_pkg
+                     ("doc-base."^(string_of_int n))
+                     (mk_doc_base docdir cs doc);
+                   n + 1
+                 end else begin
+                   n
+                 end
 
              | Object _ | Library _ | Executable _
              | Flag _ | Test _ | SrcRepo _ ->
@@ -246,7 +242,7 @@ Section: Programming/OCaml");
       match t.deb_exec, t.deb_dev with
         | Some deb_pkg, Some _ ->
             dh_with_fn deb_pkg "install"
-              (output_content "usr/bin")
+              (output_content "usr/bin");
         | Some _, None
         | None, _ ->
             ()
@@ -451,9 +447,3 @@ let dh_prerm pkg snippet_name content =
        [cur; ""; snippet_start snippet_name;
         content;
         snippet_end snippet_name] @ after)
-
-
-let dh_dirs pkg dir =
-  debian_with_append_fn
-    (pkg^".dirs")
-    (output_content dir)

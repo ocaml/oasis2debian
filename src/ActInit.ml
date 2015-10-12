@@ -68,5 +68,6 @@ let run ~ctxt args =
     Upgrade.create ~ctxt t;
     DhDirs.create ~ctxt t;
     LintianOverrides.create ~ctxt t;
+    DhManpages.create ~ctxt t;
   in
     ()

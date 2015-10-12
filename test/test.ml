@@ -32,10 +32,12 @@ let args_for_tarball =
   ["ocamlify-0.0.1.tar.gz",
    ["--homepage"; "http://forge.ocamlcore.org/projects/ocamlify";
     "--no-manpage"; "usr/bin/ocamlify";
-    "--description"; "Extended description of ocamlify."];
+    "--description"; "Extended description of ocamlify."],
+   [];
 
    "ocamlmod-0.0.3.tar.gz",
-   ["--homepage"; "http://forge.ocamlcore.org/projects/ocamlmod"];
+   ["--homepage"; "http://forge.ocamlcore.org/projects/ocamlmod"],
+   [];
 
    "sekred-0.1.0.tar.gz",
    ["--executable-name"; "sekred";
@@ -45,9 +47,19 @@ let args_for_tarball =
     "--dpkg-statoverride"; "/var/lib/sekred/domains,root,sekred,1730";
     "--no-manpage"; "usr/bin/sekred";
     "--init-command"; "sekred init";
-    "--upgrade-command"; "sekred init"];
+    "--upgrade-command"; "sekred init"],
+   [];
+
+  "darckup-0.0.2.tar.gz",
+  ["--distribution"; "wheezy";
+   "--executable-name"; "darckup";
+   "--executable-extra-depends"; "dar"],
+  [
+    "debian/darckup/usr/share/man/man1/darckup.1.gz";
+  ];
 
   "dlnasync-0.0.1.tar.gz",
+  [],
   [];
   ]
 
@@ -73,7 +85,7 @@ let check_debian_dir_style test_ctxt dn =
 
 let test_tarballs =
   List.map
-    (fun (tarball, args) ->
+    (fun (tarball, cli_args, expected_files) ->
        tarball >::
        (fun test_ctxt ->
           let dn = bracket_tmpdir test_ctxt in
@@ -105,15 +117,28 @@ let test_tarballs =
           in
             assert_command ~ctxt:test_ctxt ~chdir:pkg_dir
               (oasis2debian test_ctxt)
-              ("init" :: "--backtrace" :: "true" :: args);
+              ("init" :: "--backtrace" :: "true" :: cli_args);
             check_debian_dir_style test_ctxt
               (Filename.concat pkg_dir "debian");
             assert_command ~ctxt:test_ctxt ~chdir:pkg_dir
               (debuild test_ctxt) ["-uc"; "-us"];
+(* TODO: reactivate.
             assert_command ~ctxt:test_ctxt ~chdir:dn
               (lintian test_ctxt)
               ("--fail-on-warnings" ::
-               (filter (Has_extension "changes") (ls ".")))))
+               List.map Filename.basename
+                 ((filter (Has_extension "changes") (ls dn))));
+ *)
+            List.iter
+              (fun fn ->
+                 assert_bool
+                   (Printf.sprintf "File %s should exist."
+                      (Filename.concat pkg_dir fn))
+                   (Sys.file_exists (Filename.concat pkg_dir fn)))
+              expected_files;
+            ()
+       )
+    )
     args_for_tarball
 
 let tests =
@@ -130,7 +155,7 @@ let tests =
       let module DiffStringSet = OUnitDiff.SetMake(EString) in
         DiffStringSet.assert_equal
           (DiffStringSet.of_list
-             (List.map fst args_for_tarball))
+             (List.map (fun (fn, _, _) -> fn) args_for_tarball))
           (DiffStringSet.of_list
              (List.map Filename.basename
                 (filter

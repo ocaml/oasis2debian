@@ -23,20 +23,7 @@ open Common
 
 (* Create debian/rules *)
 let create t =
-  let destdir =
-    match t.deb_exec, t.deb_dev, t.deb_doc with
-      | Some deb_pkg, None, None
-      | _, _, Some deb_pkg ->
-          (* Only one package, move data directly into
-           * it
-           *)
-          deb_pkg.name
-      | _, _, _ ->
-          (* More than 1 package, we need to install files
-           * in different packages
-           *)
-          "tmp"
-  in
+  let destdir = destdir t in
   let has_bin =
     t.deb_exec <> None
   in
@@ -60,7 +47,7 @@ let create t =
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-DESTDIR=\$(CURDIR)/debian/$destdir
+DESTDIR=\$(CURDIR)/$destdir
 
 include /usr/share/ocaml/ocamlvars.mk
 
@@ -109,7 +96,13 @@ override_dh_auto_install:")^(
 
 .PHONY: override_dh_install
 override_dh_install:
-	dh_install --fail-missing
+	dh_install --fail-missing")^(
+    match  DhManpages.dh_install_excludes t with
+      | [] -> ""
+      | lst ->
+          String.concat " \\\n"
+            ("" :: List.map (fun fn -> "-X "^(Filename.quote fn)) lst)
+  )^(interpolate "
 
 .PHONY: override_dh_auto_clean
 override_dh_auto_clean:

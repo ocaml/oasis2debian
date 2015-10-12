@@ -176,3 +176,45 @@ let docdir t =
       | false, _, _
       | true, None, None ->
           None
+
+
+let destdir t =
+  match t.deb_exec, t.deb_dev, t.deb_doc with
+    | Some deb_pkg, None, None
+    | None, None, Some deb_pkg ->
+        (* Only one package, move data directly into
+         * it
+         *)
+        Filename.concat "debian" deb_pkg.name
+    | _, _, _ ->
+        (* More than 1 package, we need to install files
+         * in different packages
+         *)
+        Filename.concat "debian" "tmp"
+
+
+let in_destdir t =
+  let destdir = destdir t in
+    fun fn ->
+      FilePath.reduce (Filename.concat destdir fn)
+
+
+let var_expand t v =
+  let b = Buffer.create (5 * (String.length v)) in
+    Buffer.add_substitute b
+      (function
+         | "htmldir" | "docdir" as id ->
+             (match docdir t with
+                | Some fn -> fn
+                | None ->
+                    failwith
+                      (Printf.sprintf
+                         "No %S defined in the context of %S." id v))
+
+         | "prefix" -> "/usr"
+         | "mandir" -> "/usr/share/man"
+         | id ->
+             failwith
+               (Printf.sprintf "Cannot expand variable %S in '%S'." id v))
+      v;
+    Buffer.contents b

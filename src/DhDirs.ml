@@ -21,6 +21,12 @@
 
 open Common
 
+
+let dh_dirs pkg dir =
+  debian_with_append_fn
+    (pkg^".dirs")
+    (output_content dir)
+
 let dirs =
   let lst = ref [] in
     Conf.create_full
@@ -38,15 +44,6 @@ let dirs =
       (Conf.Value !lst)
 
 let create ~ctxt t =
-  let pkg_check pkg =
-    (* TODO *)
-    ()
-  in
-    List.iter
-      (fun (pkg, fn) ->
-         pkg_check pkg;
-         debian_with_append_fn
-           (pkg^".dirs")
-           (fun chn ->
-              output_string chn (fn^"\n")))
-      (Conf.get ~ctxt dirs)
+  List.iter
+    (fun (pkg, fn) -> dh_dirs pkg fn)
+    (Conf.get ~ctxt dirs)

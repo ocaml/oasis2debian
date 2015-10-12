@@ -36,7 +36,7 @@ let create ~ctxt t =
   match Conf.get ~ctxt group, t.deb_exec with
     | Some (group, homedir), Some {name = exec_name} ->
         let snippet_name = Printf.sprintf "group(%s)" group in
-          DhFiles.dh_dirs
+          DhDirs.dh_dirs
             exec_name
             homedir;
           DhFiles.dh_postinst
