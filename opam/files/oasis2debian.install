@@ -1,0 +1,4 @@
+bin: [
+  "?_build/src/Main.byte" {"oasis2debian"}
+  "?_build/src/Main.native" {"oasis2debian"}
+]

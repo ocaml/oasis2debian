@@ -1,0 +1,32 @@
+opam-version: "1.2"
+name: "oasis2debian"
+version: "0.1.2"
+maintainer: "opam-devel@lists.ocaml.org"
+authors: [ "Sylvain Le Gall" ]
+license: "GPL-3.0"
+homepage: "http://oasis.forge.ocamlcore.org/oasis2debian"
+dev-repo: "https://github.com/ocaml/oasis2debian.git"
+bug-reports: "https://github.com/ocaml/oasis2debian/issues"
+build: [
+  ["ocaml" "setup.ml" "-configure" "--prefix" prefix]
+  ["ocaml" "setup.ml" "-build"]
+]
+install: ["ocaml" "setup.ml" "-install"]
+depends: [
+  "calendar"
+  "debian-formats" {>= "0.0.1"}
+  "fileutils" {>= "0.4.2"}
+  ("oasis" {>= "0.3.1"} | "oasis-mirage" {>= "0.3.1"})
+  "ocaml-inifiles" {>= "1.2"}
+  "ocaml-xdg-basedir" {>= "0.0.1"}
+  "ocamlfind"
+  "pcre"
+  "xstrp4" {>= "1.8"}
+]
+depopts: [
+  "base-unix"
+  "ounit"
+]
+conflicts: [
+  "ounit" {< "2.0.0"}
+]
