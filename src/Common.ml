@@ -112,6 +112,7 @@ let assert_command ~ctxt cmd =
           "Command '%s' exited with code %d"
           cmd n
 
+let path = ["/usr/bin"; "/bin"; "/usr/sbin"; "/sbin"]
 
 let assert_command_output ~ctxt cmd =
   let chn =

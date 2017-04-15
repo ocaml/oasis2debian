@@ -24,7 +24,6 @@
   *)
 
 open OASISMessage
-open OASISTypes
 open Common
 open FileUtil
 
@@ -64,6 +63,12 @@ let deb_name =
 
 
 let load ~ctxt args =
+  let () =
+    (* TODO: move that at the assert_command* level rather than modify the
+       environment for all of the program.
+     *)
+    Unix.putenv "PATH" (String.concat ":" Common.path)
+  in
 
   let pkg =
     OASISParse.from_file
