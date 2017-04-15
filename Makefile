@@ -19,7 +19,7 @@
 #  Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA               #
 ################################################################################
 
-default: test reinstall
+default: test
 reinstall: build
 
 # OASIS_START
