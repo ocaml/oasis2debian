@@ -6,4 +6,5 @@ PKG oasis
 PKG extlib
 PKG fileutils
 PKG pcre
+PKG oUnit
 FLG -w +a-4-44
