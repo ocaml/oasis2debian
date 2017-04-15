@@ -1,6 +1,6 @@
 OASISFormat: 0.3
 Name:        oasis2debian
-Version: 0.1.3
+Version:     0.1.3
 Synopsis:    Create and maintain Debian package for an OASIS package
 Authors:     Sylvain Le Gall
 Copyrights:  (C) 2010 OCamlCore SARL,
@@ -20,7 +20,8 @@ Description:
 Executable oasis2debian
   Path:         src
   MainIs:       Main.ml
-  BuildDepends: oasis (>= 0.3.1), oasis.base,
+  CompiledObject: native
+  BuildDepends: oasis (>= 0.4.6), oasis.base,
                 xstrp4 (>= 1.8),
                 fileutils (>= 0.4.2),
                 pcre,

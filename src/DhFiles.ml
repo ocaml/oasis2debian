@@ -59,7 +59,7 @@ let create ~ctxt t =
              function
                | Container (_, lst) ->
                    List.fold_left fold acc lst
-               | Package (_, cs, bs, a, lst) ->
+               | Package (_, cs, bs, a, _, lst) ->
                    List.fold_left fold ((cs, bs, a) :: acc) lst
            in
              fold [] grp
