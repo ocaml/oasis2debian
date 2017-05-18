@@ -1,15 +1,17 @@
-OASISFormat: 0.3
-Name:        oasis2debian
-Version:     0.1.3
-Synopsis:    Create and maintain Debian package for an OASIS package
-Authors:     Sylvain Le Gall
-Copyrights:  (C) 2010 OCamlCore SARL,
-             (C) 2013 Sylvain Le Gall
-License:     GPL-3.0
-Plugins:     DevFiles (0.2), META (0.2), StdFiles (0.2)
-Homepage:    http://oasis.forge.ocamlcore.org/oasis2debian
-BuildTools:  ocamlbuild
-FilesAB:     src/Version.ml.ab
+OASISFormat:  0.4
+Name:         oasis2debian
+Version:      0.1.3
+OCamlVersion: >= 3.12.1
+Synopsis:     Create and maintain Debian package for an OASIS package
+Authors:      Sylvain Le Gall
+Maintainers:  Sylvain Le Gall <sylvain@le-gall.net>
+Copyrights:   (C) 2010 OCamlCore SARL,
+              (C) 2013 Sylvain Le Gall
+License:      GPL-3.0
+Plugins:      DevFiles (0.2), META (0.2), StdFiles (0.2)
+Homepage:     http://oasis.forge.ocamlcore.org/oasis2debian
+BuildTools:   ocamlbuild
+FilesAB:      src/Version.ml.ab
 Description:
   This program is a helper to translate _oasis file into a debian/ directory
   that is suitable to create a Debian package.
@@ -35,8 +37,13 @@ Executable test
   MainIs:       test.ml
   Install:      false
   BuildDepends: oUnit (>= 2.0.0), fileutils (>= 0.4.2), unix, oasis
-  Build$: flag(tests)
+  Build$:       flag(tests)
 
 Test main
-  Command: $test -oasis2debian $oasis2debian
+  Command:   $test -oasis2debian $oasis2debian
   TestTools: oasis2debian, test, tar, ocamlmod
+
+SourceRepository head
+  Type: git
+  Location: git://github.com/ocaml/oasis2debian.git
+  Browser: https://github.com/ocaml/oasis2debian
