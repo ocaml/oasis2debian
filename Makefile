@@ -99,6 +99,7 @@ headache:
 	  -o -name .svn -prune -false \
 	  -o -name _build -prune -false \
 	  -o -name dist -prune -false \
+	  -o -name opam -prune -false \
 	  -o -name '*[^~]' -type f \
 	  | xargs /usr/bin/headache -h _header -c _headache.config
 
