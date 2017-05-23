@@ -36,6 +36,8 @@ type t =
     has_dll:      bool;
     has_cmi:      bool;
     has_cmxs:     bool;
+    has_annot:    bool;
+    has_cmt:      bool;
   }
 
 let create ~ctxt t =
@@ -119,6 +121,8 @@ let create ~ctxt t =
              has_byte     = has_extensions [".cma"; ".cmo"];
              has_cmi      = has_extensions [".cmi"];
              has_cmxs     = has_extensions [".cmxs"];
+             has_annot    = has_extensions [".annot"];
+             has_cmt      = has_extensions [".cmt"; ".cmti"];
            })
 
       findlib_roots
@@ -267,6 +271,18 @@ Section: Programming/OCaml");
                           output_content
                             (interpolate
                                "@OCamlStdlibDir@/$e.findlib_name/*.ml*")
+                          chn;
+
+                        if e.has_annot then
+                          output_content
+                            (interpolate
+                               "@OCamlStdlibDir@/$e.findlib_name/*.annot")
+                          chn;
+
+                        if e.has_cmt then
+                          output_content
+                            (interpolate
+                               "@OCamlStdlibDir@/$e.findlib_name/*.cmt*")
                           chn;
 
                         if e.has_native then
