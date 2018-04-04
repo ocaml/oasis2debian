@@ -24,7 +24,7 @@ Executable oasis2debian
   MainIs:       Main.ml
   CompiledObject: native
   BuildDepends: oasis (>= 0.4.6), oasis.base,
-                xstrp4 (>= 1.8),
+                xstrp4, jingoo (>= 1.2.16),
                 fileutils (>= 0.4.2),
                 pcre,
                 debian-formats (>= 0.0.1),

@@ -53,9 +53,14 @@ let args_for_tarball =
     "debian/darckup/usr/share/man/man1/darckup.1.gz";
   ];
 
-  "dlnasync-0.0.1.tar.gz",
-  [],
-  [];
+   (* Test hanlding of *.annot and *.cmt files. *)
+  "darckup-0.0.10.tar.gz",
+  ["--distribution"; "wheezy";
+   "--executable-name"; "darckup";
+   "--executable-extra-depends"; "dar"],
+  [
+    "debian/darckup/usr/share/man/man1/darckup.1.gz";
+  ];
   ]
 
 let check_file_style test_ctxt fn =

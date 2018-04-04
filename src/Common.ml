@@ -66,6 +66,9 @@ type t =
 
     (** Doc package *)
     deb_doc:       deb_pkg option;
+
+    (** OASIS version used to generate setup.ml *)
+    oasis_version_of_setup_ml: OASISVersion.t;
   }
 
 (** [debian_fn fn] Filename [fn] inside 'debian/'

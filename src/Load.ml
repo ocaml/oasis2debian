@@ -70,18 +70,15 @@ let load ~ctxt args =
     Unix.putenv "PATH" (String.concat ":" Common.path)
   in
 
-  let pkg =
-    OASISParse.from_file
-      ~ctxt
-      "_oasis"
-  in
+  let pkg = OASISParse.from_file ~ctxt "_oasis" in
+  let expr = Expr.create ~ctxt pkg in
+  let pkg_generic = PkgGeneric.create ~ctxt expr pkg in
 
-  let expr =
-    Expr.create ~ctxt pkg
-  in
-
-  let pkg_generic =
-    PkgGeneric.create ~ctxt expr pkg
+  let oasis_version_of_setup_ml =
+    let line =
+      OASISExec.run_read_one_line ~ctxt "ocaml" ["setup.ml"; "-version"]
+    in
+    OASISVersion.version_of_string line
   in
 
   let dflt r f x =
@@ -156,6 +153,7 @@ let load ~ctxt args =
       deb_exec      = None;
       deb_dev       = None;
       deb_doc       = None;
+      oasis_version_of_setup_ml;
     }
   in
 

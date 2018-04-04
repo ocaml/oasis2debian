@@ -114,6 +114,15 @@ let create ~ctxt t =
              exts
          in
 
+         let setup_ml_can_produce_annot_and_cmt =
+           (* .annot and .cmt files are only produced since OASIS 0.4.5, so we
+              check that setup.ml has been generated with at least 0.4.5.
+            *)
+           OASISVersion.comparator_apply
+             t.oasis_version_of_setup_ml
+             (OASISVersion.comparator_of_string ">= 0.4.5")
+         in
+
            {
              findlib_name = findlib_name;
              has_dll      = has_extensions [".so"];
@@ -121,8 +130,10 @@ let create ~ctxt t =
              has_byte     = has_extensions [".cma"; ".cmo"];
              has_cmi      = has_extensions [".cmi"];
              has_cmxs     = has_extensions [".cmxs"];
-             has_annot    = has_extensions [".annot"];
-             has_cmt      = has_extensions [".cmt"; ".cmti"];
+             has_annot    = setup_ml_can_produce_annot_and_cmt &&
+                            has_extensions [".annot"];
+             has_cmt      = setup_ml_can_produce_annot_and_cmt &&
+                            has_extensions [".cmt"; ".cmti"];
            })
 
       findlib_roots
