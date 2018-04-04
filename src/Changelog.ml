@@ -52,12 +52,12 @@ let create ~ctxt t =
     debian_with_fn
       "changelog"
       (output_content
-         (interpolate "\
-$t.pkg.name ($pkg_version-1) $distribution; urgency=low
+         ("\
+"^t.pkg.name^" ("^pkg_version^"-1) "^distribution^"; urgency=low
 
-  * Initial release.$closes
-  * Generated with oasis2debian v${Version.ver}.
+  * Initial release."^closes^"
+  * Generated with oasis2debian v"^Version.ver^".
 
- -- $t.uploader  ${date}"))
+ -- "^t.uploader^"  "^date))
 
 

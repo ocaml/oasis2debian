@@ -33,17 +33,15 @@ let long ~ctxt text help =
     let chn =
       open_in fn
     in
-    let str =
-      String.make (in_channel_length chn) 'X'
-    in
+    let buf = Bytes.make (in_channel_length chn) 'X' in
     let () =
-      really_input chn str 0 (String.length str);
+      really_input chn buf 0 (Bytes.length buf);
       close_in chn
     in
     let lst =
       List.filter
         (fun s -> not (String.starts_with s "#"))
-        (String.nsplit str "\n")
+        (String.nsplit (Bytes.to_string buf) "\n")
     in
 
     let rec chop_blank_eol str =
@@ -101,6 +99,6 @@ let long ~ctxt text help =
       rm [fn];
       raise e
 
-let short ~ctxt q =
+let short ~ctxt:_ q =
   print_string q; flush stdout;
   read_line ()

@@ -93,53 +93,45 @@ let create ~ctxt t =
            output_content x chn
          in
 
-         let output_intro ?(suggest_doc=true) deb_pkg =
+         let output_intro ?(suggest_doc=true) (deb_pkg:Common.deb_pkg) =
            output_content
-             (interpolate "
-Package: $deb_pkg.name
-Architecture: $deb_pkg.arch");
-           begin
-             match suggest_doc, t.deb_doc with
-               | true, Some {name = nm} ->
-                   output_content
-                     (interpolate "\
-Suggests: $nm")
-               | _ ->
-                   ()
-           end
+             ("
+Package: "^deb_pkg.name^"
+Architecture: "^deb_pkg.arch);
+           match suggest_doc, t.deb_doc with
+           | true, Some {name = nm; _} -> output_content ("Suggests: "^nm)
+           | _ -> ()
          in
 
            (* Intro: the source package *)
            output_content
-             (interpolate "\
-Source: $src_name
+             ("\
+Source: "^src_name^"
 Section: ocaml
 Priority: optional
 Maintainer: Debian OCaml Maintainers <debian-ocaml-maint@lists.debian.org>
 Uploaders:
-  $t.uploader
+  "^t.uploader^"
 Build-Depends:
-  $build_depends
+  "^build_depends^"
 Standards-Version: 3.9.1
-Homepage: $t.homepage
-Vcs-Git: git://git.debian.org/git/pkg-ocaml-maint/packages/${src_name}.git
-Vcs-Browser: \
-http://git.debian.org/?p=pkg-ocaml-maint/packages/${src_name}.git");
+Homepage: "^t.homepage^"
+Vcs-Git: git://git.debian.org/git/pkg-ocaml-maint/packages/"^src_name^".git
+Vcs-Browser: http://git.debian.org/?p=pkg-ocaml-maint/packages/"^src_name^".git");
 
            begin
              match t.deb_exec with
                | Some deb_pkg ->
                    output_intro deb_pkg;
                    output_content
-                     (interpolate "\
-Depends: $exec_depends\${misc:Depends}, \${ocaml:Depends}
-Description: $t.pkg.synopsis
- $description");
+                     ("\
+Depends: "^exec_depends^"${misc:Depends}, ${ocaml:Depends}
+Description: "^t.pkg.synopsis^"
+ "^description);
                    if t.deb_dev <> None then
                      output_content " \
  .
  This package contains command-line tools."
-
                | None ->
                    ()
            end;
@@ -149,21 +141,21 @@ Description: $t.pkg.synopsis
                | Some (deb_dev, deb_runtime) ->
                    output_intro deb_dev;
                    output_content
-                     (interpolate "\
-Depends: $lib_dev_depends\${ocaml:Depends}, \${misc:Depends}
-Provides: \${ocaml:Provides}
+                     ("\
+Depends: "^lib_dev_depends^"${ocaml:Depends}, ${misc:Depends}
+Provides: ${ocaml:Provides}
 Recommends: ocaml-findlib
-Description: $t.pkg.synopsis
- $description");
+Description: "^t.pkg.synopsis^"
+ "^description);
 
                    output_intro deb_runtime;
                    output_content
-                      (interpolate "\
-Depends: $lib_runtime_depends\${ocaml:Depends}, \
-\${misc:Depends}, \${shlibs:Depends}
-Provides: \${ocaml:Provides}
-Description: $t.pkg.synopsis
- $description
+                      ("\
+Depends: "^lib_runtime_depends^"${ocaml:Depends}, ${misc:Depends}, \
+         ${shlibs:Depends}
+Provides: ${ocaml:Provides}
+Description: "^t.pkg.synopsis^"
+ "^description^"
  .
  This package contains the shared runtime libraries.")
 
@@ -176,11 +168,11 @@ Description: $t.pkg.synopsis
                | Some deb_pkg ->
                    output_intro deb_pkg;
                    output_content
-                     (interpolate "\
+                     ("\
 Section: doc
-Depends: \${misc:Depends}
-Description: $t.pkg.synopsis
- $description
+Depends: ${misc:Depends}
+Description: "^t.pkg.synopsis^"
+ "^description^"
  .
  This package contains the documentation.")
 

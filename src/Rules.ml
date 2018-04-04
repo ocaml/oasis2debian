@@ -40,35 +40,35 @@ let create t =
   in
     debian_with_fn "rules"
       (output_content
-         ((interpolate "\
+         (("\
 #!/usr/bin/make -f
 # -*- makefile -*-
 
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-DESTDIR=\$(CURDIR)/$destdir
+DESTDIR=$(CURDIR)/"^destdir^"
 
 include /usr/share/ocaml/ocamlvars.mk
 
-OCAMLFIND_DESTDIR=\$(DESTDIR)/\$(OCAML_STDLIB_DIR)
+OCAMLFIND_DESTDIR=$(DESTDIR)/$(OCAML_STDLIB_DIR)
 export OCAMLFIND_DESTDIR
 OCAMLFIND_LDCONF=ignore
 export OCAMLFIND_LDCONF
 
 %:
-	dh --with ocaml \$@
+	dh --with ocaml $@
 
 .PHONY: override_dh_auto_configure
 override_dh_auto_configure:
-	ocaml setup.ml -configure $docdir \\
-		--destdir '\$(DESTDIR)' \\
+	ocaml setup.ml -configure "^docdir^" \\
+		--destdir '$(DESTDIR)' \\
 		--prefix '/usr' \\
-		--mandir '\$\$prefix/share/man' \\
-		--infodir '\$\$prefix/share/info' \\
+		--mandir '$$prefix/share/man' \\
+		--infodir '$$prefix/share/info' \\
 		--sysconfdir '/etc' \\
 		--localstatedir '/var' \\
-		--libexecdir '\$\$prefix/lib/'
+		--libexecdir '$$prefix/lib/'
 
 .PHONY: override_dh_auto_build
 override_dh_auto_build:
@@ -82,16 +82,15 @@ override_dh_auto_test:
 .PHONY: override_dh_auto_install
 override_dh_auto_install:")^(
   if has_bin then
-    interpolate "
-	mkdir -p '\$(DESTDIR)/usr/bin'"
+    "
+	mkdir -p '$(DESTDIR)/usr/bin'"
   else
     "")^(
   if has_lib then
     "
 	mkdir -p '$(OCAMLFIND_DESTDIR)'"
   else
-    "")^(
-  interpolate "
+    "")^("
 	ocaml setup.ml -install
 
 .PHONY: override_dh_install
@@ -102,7 +101,7 @@ override_dh_install:
       | lst ->
           String.concat " \\\n"
             ("" :: List.map (fun fn -> "-X "^(Filename.quote fn)) lst)
-  )^(interpolate "
+  )^("
 
 .PHONY: override_dh_auto_clean
 override_dh_auto_clean:

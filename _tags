@@ -63,13 +63,3 @@
 <test/*.ml{,i}>: pkg_unix
 <test/*.ml{,i}>: pkg_oasis
 # OASIS_STOP
-
-"src/ActInit.ml": syntax_camlp4o
-"src/Control.ml": syntax_camlp4o
-"src/Changelog.ml": syntax_camlp4o
-"src/Copyright.ml": syntax_camlp4o
-"src/Rules.ml": syntax_camlp4o
-"src/DhFiles.ml": syntax_camlp4o
-"src/Group.ml": syntax_camlp4o
-"src/DpkgStatOverride.ml": syntax_camlp4o
-"src/Upgrade.ml": syntax_camlp4o

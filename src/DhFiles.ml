@@ -41,7 +41,7 @@ type t =
   }
 
 let create ~ctxt t =
-  let dh_with_fn deb_pkg ext =
+  let dh_with_fn (deb_pkg:Common.deb_pkg) ext =
     debian_with_fn (deb_pkg.name^"."^ext)
   in
 
@@ -142,7 +142,7 @@ let create ~ctxt t =
   let has_apidoc =
     List.exists
       (function
-         | Doc (cs, doc) ->
+         | Doc (_, doc) ->
              (* We estimate that a doc is an API reference if it uses
               * ocamldoc.
               *)
@@ -172,13 +172,13 @@ let create ~ctxt t =
       end
   in
 
-  let mk_doc_base docdir cs doc chn =
+  let mk_doc_base _ cs doc chn =
     let print s = output_content s chn in
     let installdir = var_expand t doc.doc_install_dir in
       print
-        (interpolate "\
-Document: $t.deb_name-$cs.cs_name
-Title: $doc.doc_title
+        ("\
+Document: "^t.deb_name^"-"^cs.cs_name^"
+Title: "^doc.doc_title^"
 Section: Programming/OCaml");
       begin
         match doc.doc_abstract with
@@ -274,49 +274,40 @@ Section: Programming/OCaml");
 
                         if e.has_cmi then
                           output_content
-                            (interpolate
-                               "@OCamlStdlibDir@/$e.findlib_name/*.cmi")
+                            ("@OCamlStdlibDir@/"^e.findlib_name^"/*.cmi")
                             chn;
 
                         if e.has_cmi then
                           output_content
-                            (interpolate
-                               "@OCamlStdlibDir@/$e.findlib_name/*.ml*")
+                            ("@OCamlStdlibDir@/"^e.findlib_name^"/*.ml*")
                           chn;
 
                         if e.has_annot then
                           output_content
-                            (interpolate
-                               "@OCamlStdlibDir@/$e.findlib_name/*.annot")
+                            ("@OCamlStdlibDir@/"^e.findlib_name^"/*.annot")
                           chn;
 
                         if e.has_cmt then
                           output_content
-                            (interpolate
-                               "@OCamlStdlibDir@/$e.findlib_name/*.cmt*")
+                            ("@OCamlStdlibDir@/"^e.findlib_name^"/*.cmt*")
                           chn;
 
-                        if e.has_native then
-                          begin
-                            output_content
-                              (interpolate
-                                 "OPT: @OCamlStdlibDir@/$e.findlib_name/*.cmx")
-                              chn;
-                            output_content
-                              (interpolate
-                                 "OPT: @OCamlStdlibDir@/$e.findlib_name/*.cmxa")
-                              chn
-                          end;
+                        if e.has_native then begin
+                          output_content
+                            ("OPT: @OCamlStdlibDir@/"^e.findlib_name^"/*.cmx")
+                            chn;
+                          output_content
+                            ("OPT: @OCamlStdlibDir@/"^e.findlib_name^"/*.cmxa")
+                            chn
+                        end;
 
                         if e.has_dll then
                           output_content
-                            (interpolate
-                               "@OCamlStdlibDir@/$e.findlib_name/*.a")
+                            ("@OCamlStdlibDir@/"^e.findlib_name^"/*.a")
                             chn
                         else if e.has_native then
                           output_content
-                            (interpolate
-                               "OPT: @OCamlStdlibDir@/$e.findlib_name/*.a")
+                            ("OPT: @OCamlStdlibDir@/"^e.findlib_name^"/*.a")
                             chn;
 
                         begin
@@ -339,7 +330,7 @@ Section: Programming/OCaml");
                    (* At least one findlib root has a dll *)
                    List.iter
                      (function
-                        | {has_dll = true} as e ->
+                       | {has_dll = true; _} as e ->
                             output_content
                               ("@OCamlStdlibDir@/"^
                                e.findlib_name^"/*.so @OCamlDllDir@")
@@ -351,18 +342,15 @@ Section: Programming/OCaml");
                    List.iter
                      (fun e ->
                         output_content
-                          (interpolate
-                             "@OCamlStdlibDir@/$e.findlib_name/META")
+                          ("@OCamlStdlibDir@/"^e.findlib_name^"/META")
                           chn;
                         if e.has_byte then
                           output_content
-                            (interpolate
-                               "@OCamlStdlibDir@/$e.findlib_name/*.cm[ao]")
+                            ("@OCamlStdlibDir@/"^e.findlib_name^"/*.cm[ao]")
                             chn;
                         if e.has_cmxs then
                           output_content
-                            (interpolate
-                               "OPT: @OCamlStdlibDir@/$e.findlib_name/*.cmxs")
+                            ("OPT: @OCamlStdlibDir@/"^e.findlib_name^"/*.cmxs")
                             chn)
                      roots)
             end
@@ -435,14 +423,14 @@ let dh_script_split fn =
       debian_with_fn
         fn
         (output_content
-           (interpolate "\
+           ("\
 #!/bin/sh
 
 set -e
 
 #DEBHELPER#
 
-$insertion_point"));
+"^insertion_point));
     split (lines_of_file (debian_fn fn))
 
 

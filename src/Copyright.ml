@@ -190,21 +190,15 @@ let create ~ctxt t =
           let lst =
             let rec collect_excpt acc =
               function
-                | DEP5Unit {excption = Some e} ->
-                    if not (List.mem e acc) then
-                      e :: acc
-                    else
-                      acc
-                | DEP5Unit _ ->
-                    acc
-                | DEP5Or lst | DEP5And lst ->
-                    List.fold_left collect_excpt acc lst
+              | DEP5Unit {excption = Some e; _} ->
+                if not (List.mem e acc) then e :: acc else acc
+              | DEP5Unit _ -> acc
+              | DEP5Or lst | DEP5And lst ->
+                List.fold_left collect_excpt acc lst
             in
               collect_excpt [] l
           in
-          let sep =
-            "\n\n"
-          in
+          let sep = "\n\n" in
             if lst <> [] then
               sep ^ (String.concat sep (List.map (license_exception ~ctxt) lst))
             else
@@ -215,7 +209,7 @@ let create ~ctxt t =
   in
 
   let year =
-    (Unix.gmtime (Unix.gettimeofday ())).Unix.tm_year + 1900
+    Format.sprintf "%d" ((Unix.gmtime (Unix.gettimeofday ())).Unix.tm_year + 1900)
   in
 
     debian_with_fn "copyright"
@@ -224,20 +218,20 @@ let create ~ctxt t =
            output_content x chn
          in
            output_content
-             (interpolate "\
+             ("\
 Format-Specification: \
   http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=135
-Name: $t.deb_name
-Maintainer: $t.uploader
+Name: "^t.deb_name^"
+Maintainer: "^t.uploader^"
 
 Files: *
-Copyright: $copyrights
-License: $license
+Copyright: "^copyrights^"
+License: "^license^"
 
- $license_full$license_exception
+ "^license_full^license_exception^"
 
 Files: debian/*
-Copyright: (C) ${year,%d} $t.uploader
+Copyright: (C) "^year^" "^t.uploader^"
 License: GPL-3+
 
  See '/usr/share/common-licenses/GPL-3' for full text.

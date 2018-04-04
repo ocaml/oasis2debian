@@ -37,11 +37,11 @@ let upgrade_command =
     (Conf.Value None)
 
 let create ~ctxt t =
-  let get_deb_exec flag = 
-    match t.deb_exec with 
+  let get_deb_exec flag =
+    match t.deb_exec with
       | None ->
           failwith (flag^" called without an executable package.")
-      | Some {name = exec_name} ->
+      | Some {name = exec_name; _} ->
           exec_name
   in
 
@@ -49,9 +49,9 @@ let create ~ctxt t =
     DhFiles.dh_postinst
       exec_name
       "init"
-      (interpolate "\
-if [ \"\$1\" = configure ] && [ \"x\$2\" = \"x\" ]; then
-  $init_command
+      ("\
+if [ \"$1\" = configure ] && [ \"x$2\" = \"x\" ]; then
+  "^init_command^"
 fi")
   in
 
@@ -59,11 +59,11 @@ fi")
     DhFiles.dh_postinst
       exec_name
       "upgrade"
-      (interpolate "\
-if [ \"\$1\" = configure ] && ! [ \"x\$2\" = \"x\" ]; then
-  debian_version=\"\$2\"
-  version=\"\${debian_version%-*}\"
-  $upgrade_command
+      ("\
+if [ \"$1\" = configure ] && ! [ \"x$2\" = \"x\" ]; then
+  debian_version=\"$2\"
+  version=\"${debian_version%-*}\"
+  "^upgrade_command^"
 fi")
   in
 
@@ -71,9 +71,9 @@ fi")
     DhFiles.dh_postinst
       exec_name
       "init-upgrade"
-      (interpolate "\
-if [ \"\$1\" = configure ]; then
-  $command
+      ("\
+if [ \"$1\" = configure ]; then
+  "^command^"
 fi")
   in
 

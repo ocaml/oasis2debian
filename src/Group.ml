@@ -34,7 +34,7 @@ let group =
 
 let create ~ctxt t =
   match Conf.get ~ctxt group, t.deb_exec with
-    | Some (group, homedir), Some {name = exec_name} ->
+  | Some (group, homedir), Some {name = exec_name; _} ->
         let snippet_name = Printf.sprintf "group(%s)" group in
           DhDirs.dh_dirs
             exec_name
@@ -42,19 +42,19 @@ let create ~ctxt t =
           DhFiles.dh_postinst
             exec_name
             snippet_name
-            (interpolate "\
-if [ \"\$1\" = configure ]; then
-  if ! getent group '$group' > /dev/null; then
-    adduser --system --quiet --home '$homedir' --no-create-home \\
-      --disabled-password --group '$group'
+            ("\
+if [ \"$1\" = configure ]; then
+  if ! getent group '"^group^"' > /dev/null; then
+    adduser --system --quiet --home '"^homedir^"' --no-create-home \\
+      --disabled-password --group '"^group^"'
   fi
 fi");
           DhFiles.dh_prerm
             exec_name
             snippet_name
-            (interpolate "\
-if [ \"\$1\" = remove ]; then
-  delgroup '$group' > /dev/null 2>&1 || true
+            ("\
+if [ \"$1\" = remove ]; then
+  delgroup '"^group^"' > /dev/null 2>&1 || true
 fi")
 
     | Some _, None ->
