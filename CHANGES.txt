@@ -1,3 +1,10 @@
+2018-04-05  Sylvain Le Gall <sylvain AT le-gall.net>
+
+    * Version 0.1.4
+    * Handle installation of .cmt/.annot files.
+    * Compile with OCaml 4.06.
+    * Stop using xstrp4.
+
 2017-05-18  Sylvain Le Gall <sylvain AT le-gall.net>
 
     * Version 0.1.3
