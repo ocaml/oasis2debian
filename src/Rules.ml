@@ -57,7 +57,7 @@ OCAMLFIND_LDCONF=ignore
 export OCAMLFIND_LDCONF
 
 %:
-	dh --with ocaml $@
+	dh $@ --with ocaml
 
 .PHONY: override_dh_auto_configure
 override_dh_auto_configure:
