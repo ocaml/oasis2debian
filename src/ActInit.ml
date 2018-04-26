@@ -27,7 +27,7 @@ open OASISMessage
 open FileUtil
 open Common
 
-let dh_compat = "7"
+let dh_compat = "10"
 
 let run ~ctxt args =
 
