@@ -9,7 +9,7 @@ Copyrights:   (C) 2010 OCamlCore SARL,
               (C) 2013 Sylvain Le Gall
 License:      GPL-3.0
 Plugins:      DevFiles (0.2), META (0.2), StdFiles (0.2)
-Homepage:     http://oasis.forge.ocamlcore.org/oasis2debian
+Homepage:     http://oasis.forge.ocamlcore.org/oasis2debian.html
 BuildTools:   ocamlbuild
 FilesAB:      src/Version.ml.ab
 Description:
